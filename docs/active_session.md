@@ -10,13 +10,16 @@ Establishing context tracking structures, best practices, and Git/worktree confi
 ## 📂 Key Files & Locations
 *   [docs/active_session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/active_session.md) (This file)
 *   [docs/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/roadmap.md) (Project roadmap and backlog)
-*   [docs/scope.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/scope.md) (Project boundaries and tech stack)
+*   [GEMINI.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/GEMINI.md) (IA agent guidelines)
+*   [.gitignore](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/.gitignore) (Git exclusions)
+*   [.env](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/.env) (Local environment variables)
 
 ## 📌 Session Tasks
 *   [x] Document context storage preferences and window optimization guidelines.
 *   [x] Initialize Git repository to enable `git worktree` support.
 *   [x] Set up base template for active session tracking.
-*   [ ] Initialize docker-compose configuration parameters to support dynamic port bindings for parallel agents.
+*   [x] Configure local `.env` variables and `.gitignore`.
+*   [x] Build and integrate `GEMINI.md` developer guidelines.
 
 ## 💬 Active Discussions / Blockers
 None at the moment.
