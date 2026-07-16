@@ -1,0 +1,45 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Docker / Local services databases & logs
+/data/
+/volumes/
+postgres_data/
+minio_data/
+kafka_data/
+airflow/logs/
+airflow/dags/logs/
+airflow/airflow.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Antigravity/Gemini CLI temp
+.gemini/
+.agents/scratch/
