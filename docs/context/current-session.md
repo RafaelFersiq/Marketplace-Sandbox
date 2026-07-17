@@ -1,6 +1,6 @@
-# Current Session: Context Management System Setup
+# Current Session: Git Strategy & GitHub Upload
 
 ## What is happening right now
-* Configuring the layered Context Management System (`roadmap.md`, `current-step.md`, `current-session.md`).
-* Updating `GEMINI.md` to incorporate context rules, workflows, and strict ADR documentation enforcement.
+* Defined GitHub Flow as the branching strategy in [ADR-0001](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/0001-git-branching-strategy.md).
+* Preparing instructions for the user to upload the repository to GitHub (external task).
 

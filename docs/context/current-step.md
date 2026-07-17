@@ -3,7 +3,7 @@
 ## Tasks
 - [x] Configure repository with version control (Git initialized on branch `main`)
 - [x] Configure git ignore rules (Added `.gitignore` excluding Python, IDEs, and local `.env` values)
-- [ ] Define git branching strategy for development, integration, and production
+- [x] Define git branching strategy for development, integration, and production
 - [ ] Create base directory structure for the platform (infrastructure, ingestion, processing, transformation, observability, testing, and docs)
 - [ ] Configure local containerized environment (`docker-compose.yml` defining PostgreSQL, MinIO, Zookeeper, Kafka, Schema Registry, Spark master/worker, Airflow, Prometheus, and Grafana)
 - [ ] Configure PostgreSQL instance with metadata databases/schemas for Airflow and marketplace transactional simulation
