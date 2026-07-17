@@ -10,7 +10,7 @@ Este arquivo contém instruções de identidade, regras de geração de código,
 ## 1. Identidade e Papéis
 
 ### Agente Central (Antigravity)
-*   **Missão**: Atuar como o arquiteto chefe e coordenador principal do desenvolvimento. Responsável por alinhar os requisitos com o usuário, gerenciar o plano de execução ([docs/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/roadmap.md)), manter o arquivo de progresso atual ([docs/active_session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/active_session.md)), estruturar decisões de arquitetura ([docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/)) e delegar subtarefas para os subagentes apropriados.
+*   **Missão**: Atuar como o arquiteto chefe e coordenador principal do desenvolvimento. Responsável por alinhar os requisitos com o usuário, gerenciar o plano de execução de alto nível ([docs/context/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)), coordenar a execução do milestone ativo ([docs/context/current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)), gerenciar as notas de desenvolvimento ativo ([docs/context/current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)), estruturar decisões de arquitetura ([docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/)) e delegar subtarefas para os subagentes apropriados.
 
 ### Subagentes Especialistas
 Ao invocar subagentes via `invoke_subagent`, atribua tarefas de acordo com as seguintes especialidades:
@@ -47,7 +47,7 @@ Ao invocar subagentes via `invoke_subagent`, atribua tarefas de acordo com as se
 
 *   **Código Comentado**: Evitar explicações teóricas longas no chat. Em vez disso, explique a lógica diretamente em comentários de código no local relevante (`#` em Python, `--` em SQL).
 *   **Resumos Executivos**: Ao terminar uma tarefa, forneça um breve resumo com bullet points focado nas ações efetuadas e links diretos para os arquivos modificados.
-*   **Links de Arquivos Obrigatórios**: Sempre utilize links markdown com o esquema `file://` (ex: `[active_session.md](file:///caminho/para/docs/active_session.md)`) ao mencionar caminhos no projeto.
+*   **Links de Arquivos Obrigatórios**: Sempre utilize links markdown com o esquema `file://` (ex: `[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)`) ao mencionar caminhos no projeto.
 
 ---
 
@@ -67,4 +67,24 @@ Para manter o foco do projeto estritamente na infraestrutura e engenharia de dad
 
 *   **Caminhos Relativos**: Todos os scripts de teste e carregamentos de dados devem usar caminhos relativos ao diretório raiz do projeto para não quebrar quando executados em diretórios de worktree secundários (ex: `../Marketplace-Sandbox-share-xyz/`).
 *   **Isolamento de Portas**: Caso necessite rodar serviços locais via Docker em branches/worktrees paralelos simultâneos, altere as portas padrão no arquivo `.env` para evitar conflito de binding de portas na máquina host.
-*   **Atualização do Roadmap**: Sempre atualize o arquivo [docs/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/roadmap.md) ao final da execução de cada etapa de desenvolvimento.
+
+---
+
+## 6. Sistema de Gerenciamento de Contexto (Context Management System)
+
+O desenvolvimento deste projeto segue um fluxo sequencial rígido gerenciado por uma hierarquia de contexto de 3 níveis em `docs/context/`:
+
+### A. Estrutura de Arquivos
+1.  **[roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)** (Plano Geral de Alto Nível):
+    *   *Regra*: É a única fonte da verdade estratégica do projeto. Trate como somente leitura. Nunca altere sem aprovação expressa do usuário. Nunca coloque detalhes de implementação ou checklists temporários nele.
+2.  **[current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)** (Milestone Ativo):
+    *   *Regra*: Contém a decomposição do milestone atual em tarefas atômicas e executáveis na ordem cronológica de desenvolvimento. Atualize as checkboxes (`- [ ]` / `- [x]`) imediatamente ao concluir uma tarefa.
+3.  **[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)** (Memória de Trabalho Recente):
+    *   *Regra*: Contém o foco imediato do agente. Deve ser mantido leve. Limpe notas obsoletas e nunca duplique dados do roadmap ou do current-step.
+
+### B. Fluxo de Trabalho (Workflow de Sessão)
+*   **Início da Sessão**: O agente deve ler `roadmap.md`, `current-step.md` e o `current-session.md` aplicável.
+*   **Durante o Trabalho**: Atualizar o `current-session.md` de forma contínua com notas do estado atual e marcar tarefas concluídas em `current-step.md`.
+*   **Final da Sessão**: Limpar dados temporários ou obsoletos do `current-session.md`, preservando apenas informações essenciais para a próxima iteração.
+*   **Tarefas Externas**: Se uma tarefa não puder ser executada pelo agente (ex: instalações manuais, geração de credenciais proprietárias), o agente deve instruir o usuário de forma clara, pausar sua execução e esperar confirmação antes de marcar a tarefa como resolvida.
+*   **Conclusão do Passo**: Quando todas as tarefas de `current-step.md` estiverem completas, notifique o usuário e solicite aprovação para carregar o próximo milestone do roadmap no arquivo.
