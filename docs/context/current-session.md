@@ -2,4 +2,5 @@
 
 ## What is happening right now
 * Configuring the layered Context Management System (`roadmap.md`, `current-step.md`, `current-session.md`).
-* Updating `GEMINI.md` to incorporate context rules and workflows.
+* Updating `GEMINI.md` to incorporate context rules, workflows, and strict ADR documentation enforcement.
+
