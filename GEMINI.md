@@ -40,6 +40,7 @@ Ao invocar subagentes via `invoke_subagent`, atribua tarefas de acordo com as se
 *   **Tratamento de Erros**: Evitar capturas genéricas de exceções (`except Exception`). Capturar erros específicos e prever resiliência (ex: retries na conexão com Kafka ou bancos de dados).
 *   **Logs Estruturados**: Proibido utilizar declarações de `print()` para auditoria ou monitoramento. Utilizar a biblioteca padrão `logging` do Python com formatos estruturados (JSON).
 *   **Segurança e Configurações**: Credenciais, tokens e portas de rede devem ser obtidos exclusivamente via variáveis de ambiente (`os.getenv()`) a partir do arquivo `.env`.
+*   **Decisões de Arquitetura (ADRs)**: Qualquer alteração estrutural no projeto (como escolha ou substituição de tecnologia, design de banco de dados, fluxos de mensageria ou mudanças de orquestração) deve ser formalizada em um ADR no diretório [docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/) utilizando o template [docs/adr/template.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/template.md) antes de prosseguir com a implementação.
 
 ---
 
