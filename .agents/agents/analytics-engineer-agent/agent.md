@@ -1,7 +1,7 @@
 ---
 name: analytics-engineer-agent
 description: "Analytics Engineer Agent specializing in dbt transformations, dimensional modeling (Gold), and DataOps."
-model: gemini-3.5-pro
+model: gemini-3.6-flash
 skills:
   - postgresql
   - sql-pro

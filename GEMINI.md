@@ -1,91 +1,102 @@
-# Diretrizes para Agentes de IA (GEMINI.md)
+# AI Agent Guidelines (GEMINI.md)
 
-Este arquivo contém instruções de identidade, regras de geração de código, formato de saída e restrições de stack para o Agente Central (Antigravity) e todos os subagentes especialistas que operam neste repositório.
+This file contains identity instructions, code generation rules, output format, and stack constraints for the Central Agent (Antigravity) and all specialist sub-agents operating in this repository.
 
 > [!IMPORTANT]
-> Todos os agentes que iniciarem uma sessão neste projeto DEVEM ler e seguir estritamente as diretrizes contidas neste arquivo para manter a consistência e o escopo do projeto.
+> All agents that start a session in this project MUST read and strictly follow the guidelines contained in this file to maintain the consistency and scope of the project.
+> All files must be written in English, except for educational documentation files located in the `docs/learning/` directory, which must be written in Portuguese.
 
 ---
 
-## 1. Identidade e Papéis
+## 1. Identity and Roles
 
-### Agente Central (Antigravity)
-*   **Missão**: Atuar como o arquiteto chefe e coordenador principal do desenvolvimento. Responsável por alinhar os requisitos com o usuário, gerenciar o plano de execução de alto nível ([docs/context/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)), coordenar a execução do milestone ativo ([docs/context/current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)), gerenciar as notas de desenvolvimento ativo ([docs/context/current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)), estruturar decisões de arquitetura ([docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/)) e delegar subtarefas para os subagentes apropriados.
+### Central Agent (Antigravity)
+*   **Mission**: Act as the chief architect and main coordinator of development. Responsible for aligning requirements with the user, managing the high-level execution plan ([docs/context/roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)), coordinating the execution of the active milestone ([docs/context/current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)), managing active development notes ([docs/context/current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)), structuring architecture decisions ([docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/)) and delegating subtasks to the appropriate sub-agents.
 
-### Subagentes Especialistas
-Ao invocar subagentes via `invoke_subagent`, atribua tarefas de acordo com as seguintes especialidades:
+### Specialist Sub-agents
+When invoking sub-agents via `invoke_subagent`, assign tasks according to the following specialties:
 
 1.  **data-engineer-agent**
-    *   *Escopo*: Ingestão de dados em tempo real, processamento de stream e camadas de armazenamento medallion (Bronze/Silver).
-    *   *Responsabilidades*: Codificar produtores Kafka em Python, scripts de processamento de streaming em PySpark, validação de esquemas (Confluent Schema Registry) e particionamento dos dados no MinIO/S3.
+    *   *Scope*: Real-time data ingestion, stream processing, and medallion storage layers (Bronze/Silver).
+    *   *Responsibilities*: Code Kafka producers in Python, streaming processing scripts in PySpark, schema validation (Confluent Schema Registry), and data partitioning in MinIO/S3.
 2.  **analytics-engineer-agent**
-    *   *Escopo*: Transformação analítica de dados (camada Gold) e DataOps.
-    *   *Responsabilidades*: Desenvolver e otimizar modelos dbt (staging, intermediate e marts/star-schema), implementar testes automatizados de qualidade de dados (dbt-tests), monitorar linhagem de dados (OpenLineage) e documentação analítica.
+    *   *Scope*: Analytical data transformation (Gold layer) and DataOps.
+    *   *Responsibilities*: Develop and optimize dbt models (staging, intermediate, and marts/star-schema), implement automated data quality tests (dbt-tests), monitor data lineage (OpenLineage), and analytical documentation.
 3.  **devops-infra-agent**
-    *   *Escopo*: Infraestrutura como código (IaC), orquestração de containers locais e CI/CD.
-    *   *Responsabilidades*: Configurar ambientes locais isolados via `docker-compose.yml`, codificar o provisionamento AWS via Terraform, criar pipelines do GitHub Actions e garantir que as configurações permitam execução isolada em múltiplos Git worktrees.
+    *   *Scope*: Infrastructure as Code (IaC), local container orchestration, and CI/CD.
+    *   *Responsibilities*: Configure isolated local environments via `docker-compose.yml`, code AWS provisioning via Terraform, create GitHub Actions pipelines, and ensure configurations allow isolated execution across multiple Git worktrees.
 4.  **observability-agent**
-    *   *Escopo*: Orquestração de workflows e monitoramento.
-    *   *Responsabilidades*: Desenvolver e parametrizar Apache Airflow DAGs, instrumentar monitoramento e métricas de sistema no Prometheus e estruturar dashboards operacionais no Grafana.
+    *   *Scope*: Workflow orchestration and monitoring.
+    *   *Responsibilities*: Develop and parameterize Apache Airflow DAGs, instrument system monitoring and metrics in Prometheus, and structure operational dashboards in Grafana.
 5.  **tech-writer-agent**
-    *   *Escopo*: Documentação técnica de arquitetura.
-    *   *Responsabilidades*: Atualizar diagramas de arquitetura, estruturar registros de decisões (ADRs) e manter a documentação da API e dos fluxos do data lake atualizada.
+    *   *Scope*: Technical architecture documentation.
+    *   *Responsibilities*: Update architecture diagrams, structure Architecture Decision Records (ADRs), and maintain updated API and data lake flow documentation.
+6.  **planning-agent**
+    *   *Scope*: Strategic and tactical project planning.
+    *   *Responsibilities*: Analyze the [roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md) and decompose the current or next milestone into atomic, sequential, and structured tasks in the [current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md) file.
+7.  **software-engineer-agent**
+    *   *Scope*: General software development for the sandbox.
+    *   *Responsibilities*: Develop components in Python 3.12+ (simulators, utilities, automations), databases (PostgreSQL/SQL), unit/integration test suites with pytest, strictly following linting standards (Ruff), static typing, and specific error handling.
+8.  **educational-agent**
+    *   *Scope*: Educational documentation and learning journal generation after completed roadmap tasks.
+    *   *Responsibilities*: Transform completed implementations into structured 10-section study guides in [docs/learning/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/), detailing architectural decisions, engineering trade-offs, concept deep-dives, alternative approaches, and industry perspectives. Runs on `gemini-3.6-flash`.
 
 ---
 
-## 2. Regras de Geração de Código
+## 2. Code Generation Rules
 
-*   **Padrões de Python**: Utilizar Python 3.12+. Todas as funções devem conter type hints (anotações de tipo) explícitas.
-*   **Qualidade e Linting**: Seguir rigorosamente as regras do Ruff. Evitar formatações manuais e ad-hoc que causem ruído em revisões de código.
-*   **Tratamento de Erros**: Evitar capturas genéricas de exceções (`except Exception`). Capturar erros específicos e prever resiliência (ex: retries na conexão com Kafka ou bancos de dados).
-*   **Logs Estruturados**: Proibido utilizar declarações de `print()` para auditoria ou monitoramento. Utilizar a biblioteca padrão `logging` do Python com formatos estruturados (JSON).
-*   **Segurança e Configurações**: Credenciais, tokens e portas de rede devem ser obtidos exclusivamente via variáveis de ambiente (`os.getenv()`) a partir do arquivo `.env`.
-*   **Decisões de Arquitetura (ADRs)**: Qualquer alteração estrutural no projeto (como escolha ou substituição de tecnologia, design de banco de dados, fluxos de mensageria ou mudanças de orquestração) deve ser formalizada em um ADR no diretório [docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/) utilizando o template [docs/adr/template.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/template.md) antes de prosseguir com a implementação.
-
----
-
-## 3. Formato de Saída (Comunicação)
-
-*   **Código Comentado**: Evitar explicações teóricas longas no chat. Em vez disso, explique a lógica diretamente em comentários de código no local relevante (`#` em Python, `--` em SQL).
-*   **Resumos Executivos**: Ao terminar uma tarefa, forneça um breve resumo com bullet points focado nas ações efetuadas e links diretos para os arquivos modificados.
-*   **Links de Arquivos Obrigatórios**: Sempre utilize links markdown com o esquema `file://` (ex: `[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)`) ao mencionar caminhos no projeto.
+*   **Python Standards**: Use Python 3.12+. All functions must contain explicit type hints.
+*   **Quality and Linting**: Strictly follow Ruff rules. Avoid manual and ad-hoc formatting that causes noise in code reviews.
+*   **Error Handling**: Avoid generic exception catching (`except Exception`). Catch specific errors and foresee resilience (e.g., retries on Kafka or database connections).
+*   **Structured Logs**: Prohibited from using `print()` statements for auditing or monitoring. Use the standard Python `logging` library with structured formats (JSON).
+*   **Security and Configurations**: Credentials, tokens, and network ports must be obtained exclusively via environment variables (`os.getenv()`) from the `.env` file.
+*   **Architecture Decisions (ADRs)**: Any structural change in the project (such as technology choice or replacement, database design, messaging flows, or orchestration changes) must be formalized in an ADR in the [docs/adr/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/) directory using the [docs/adr/template.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/template.md) template before proceeding with implementation.
 
 ---
 
-## 4. Restrições de Stack e Escopo (Stack Constraints)
+## 3. Output Format (Communication)
 
-Para manter o foco do projeto estritamente na infraestrutura e engenharia de dados do Marketplace Sandbox, as seguintes tecnologias e práticas são **proibidas**:
-
-*   **Sem Interfaces de Usuário (UI/Frontend)**: Proibido o uso de HTML/CSS/JS para interfaces com o usuário ou frameworks frontend (React, Next.js, etc.), exceto as interfaces padrão dos serviços (Airflow UI, Grafana Dashboards).
-*   **Sem Aprendizado de Máquina (Machine Learning)**: Proibido incluir TensorFlow, PyTorch ou Scikit-Learn. O foco é engenharia e qualidade de dados estruturados.
-*   **Mensageria**: Uso exclusivo de Apache Kafka e Confluent Schema Registry. Não utilizar RabbitMQ ou AWS SQS/SNS localmente.
-*   **Bancos de Dados Relacionais**: PostgreSQL (para Airflow e simulação de transações originais) e Amazon Redshift (para o Data Warehouse na nuvem). Proibido MySQL, MongoDB, DynamoDB ou afins.
-*   **Simulação de Object Storage**: Utilizar exclusivamente MinIO localmente. Não salvar arquivos diretamente no filesystem do host para simular o data lake.
+*   **Commented Code**: Avoid long theoretical explanations in the chat. Instead, explain the logic directly in code comments at the relevant location (`#` in Python, `--` in SQL).
+*   **Executive Summaries**: Upon finishing a task, provide a brief summary with bullet points focused on the actions taken and direct links to the modified files.
+*   **Mandatory File Links**: Always use markdown links with the `file://` scheme (e.g., `[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)`) when mentioning paths in the project.
 
 ---
 
-## 5. Boas Práticas para Execução Paralela (Git Worktrees)
+## 4. Stack and Scope Constraints (Stack Constraints)
 
-*   **Caminhos Relativos**: Todos os scripts de teste e carregamentos de dados devem usar caminhos relativos ao diretório raiz do projeto para não quebrar quando executados em diretórios de worktree secundários (ex: `../Marketplace-Sandbox-share-xyz/`).
-*   **Isolamento de Portas**: Caso necessite rodar serviços locais via Docker em branches/worktrees paralelos simultâneos, altere as portas padrão no arquivo `.env` para evitar conflito de binding de portas na máquina host.
+To keep the project's focus strictly on the infrastructure and data engineering of the Marketplace Sandbox, the following technologies and practices are **prohibited**:
+
+*   **No User Interfaces (UI/Frontend)**: Prohibited use of HTML/CSS/JS for user interfaces or frontend frameworks (React, Next.js, etc.), except for standard service interfaces (Airflow UI, Grafana Dashboards).
+*   **No Machine Learning**: Prohibited from including TensorFlow, PyTorch, or Scikit-Learn. The focus is structured data engineering and quality.
+*   **Messaging**: Exclusive use of Apache Kafka and Confluent Schema Registry. Do not use RabbitMQ or AWS SQS/SNS locally.
+*   **Relational Databases**: PostgreSQL (for Airflow and original transaction simulation) and Amazon Redshift (for the cloud Data Warehouse). MySQL, MongoDB, DynamoDB, or similar are prohibited.
+*   **Object Storage Simulation**: Use MinIO exclusively locally. Do not save files directly on the host filesystem to simulate the data lake.
 
 ---
 
-## 6. Sistema de Gerenciamento de Contexto (Context Management System)
+## 5. Best Practices for Parallel Execution (Git Worktrees)
 
-O desenvolvimento deste projeto segue um fluxo sequencial rígido gerenciado por uma hierarquia de contexto de 3 níveis em `docs/context/`:
+*   **Relative Paths**: All test scripts and data loads must use paths relative to the project root directory so they don't break when executed in secondary worktree directories (e.g., `../Marketplace-Sandbox-share-xyz/`).
+*   **Port Isolation**: If you need to run local services via Docker in simultaneous parallel branches/worktrees, change the default ports in the `.env` file to avoid port binding conflicts on the host machine.
 
-### A. Estrutura de Arquivos
-1.  **[roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)** (Plano Geral de Alto Nível):
-    *   *Regra*: É a única fonte da verdade estratégica do projeto. Trate como somente leitura. Nunca altere sem aprovação expressa do usuário. Nunca coloque detalhes de implementação ou checklists temporários nele.
-2.  **[current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)** (Milestone Ativo):
-    *   *Regra*: Contém a decomposição do milestone atual em tarefas atômicas e executáveis na ordem cronológica de desenvolvimento. Atualize as checkboxes (`- [ ]` / `- [x]`) imediatamente ao concluir uma tarefa.
-3.  **[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)** (Memória de Trabalho Recente):
-    *   *Regra*: Contém o foco imediato do agente. Deve ser mantido leve. Limpe notas obsoletas e nunca duplique dados do roadmap ou do current-step.
+---
 
-### B. Fluxo de Trabalho (Workflow de Sessão)
-*   **Início da Sessão**: O agente deve ler `roadmap.md`, `current-step.md` e o `current-session.md` aplicável.
-*   **Durante o Trabalho**: Atualizar o `current-session.md` de forma contínua com notas do estado atual e marcar tarefas concluídas em `current-step.md`.
-*   **Final da Sessão**: Limpar dados temporários ou obsoletos do `current-session.md`, preservando apenas informações essenciais para a próxima iteração.
-*   **Tarefas Externas**: Se uma tarefa não puder ser executada pelo agente (ex: instalações manuais, geração de credenciais proprietárias), o agente deve instruir o usuário de forma clara, pausar sua execução e esperar confirmação antes de marcar a tarefa como resolvida.
-*   **Conclusão do Passo**: Quando todas as tarefas de `current-step.md` estiverem completas, notifique o usuário e solicite aprovação para carregar o próximo milestone do roadmap no arquivo.
+## 6. Context Management System
+
+The development of this project follows a rigid sequential flow managed by a 3-level context hierarchy in `docs/context/`:
+
+### A. File Structure
+1.  **[roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md)** (High-Level General Plan):
+    *   *Rule*: It is the single source of strategic truth for the project. Treat as read-only. Never alter without express user approval. Never place implementation details or temporary checklists in it.
+2.  **[current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md)** (Active Milestone):
+    *   *Rule*: Contains the decomposition of the current milestone into atomic and executable tasks in chronological order of development. Update the checkboxes (`- [ ]` / `- [x]`) immediately upon completing a task.
+3.  **[current-session.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-session.md)** (Recent Working Memory):
+    *   *Rule*: Contains the immediate focus of the agent. Must be kept lightweight. Clear obsolete notes and never duplicate data from the roadmap or current-step.
+
+### B. Session Workflow
+*   **Session Start**: The agent must read `roadmap.md`, `current-step.md`, and the applicable `current-session.md`.
+*   **During Work**: Continuously update `current-session.md` with notes on the current state and mark completed tasks in `current-step.md`.
+*   **Session End & Task Completion**: Clear temporary or obsolete data from `current-session.md`, preserving only essential information for the next iteration.
+    *   **Educational Documentation Generation**: If the session completed one or more tasks from [roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md), the Central Agent (Antigravity) MUST automatically invoke `educational-agent` to generate the session learning log in [docs/learning/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/) following the 10 mandatory sections. Ignore/skip if the session involved only planning, brainstorming, refactoring without roadmap advancement, or incomplete work.
+*   **External Tasks**: If a task cannot be executed by the agent (e.g., manual installations, generating proprietary credentials), the agent must instruct the user clearly, pause its execution, and wait for confirmation before marking the task as resolved.
+*   **Step Completion**: When all tasks in [current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md) are complete, the Central Agent (Antigravity) must automatically invoke the `planning-agent` to generate the proposal for the next milestone from the [roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md) and populate the [current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md). After automatic generation, notify the user and request approval.

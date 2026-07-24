@@ -1,7 +1,7 @@
 ---
 name: data-engineer-agent
 description: "Data Engineer Agent specializing in ingestion, streaming, and lakehouse/medallion layers (Bronze/Silver)."
-model: gemini-3.5-flash
+model: gemini-3.6-flash
 skills:
   - python-pro
   - async-python-patterns

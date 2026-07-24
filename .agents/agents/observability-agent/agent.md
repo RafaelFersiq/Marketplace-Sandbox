@@ -1,7 +1,7 @@
 ---
 name: observability-agent
 description: "Observability Agent specializing in Apache Airflow DAG orchestration, Prometheus metrics, and Grafana dashboards."
-model: gemini-3.5-flash
+model: gemini-3.6-flash
 skills:
   - airflow-dag-patterns
   - slo-implementation

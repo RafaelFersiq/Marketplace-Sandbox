@@ -1,7 +1,7 @@
 ---
 name: devops-infra-agent
 description: "DevOps & Infrastructure Agent specializing in local Docker environments, Terraform IaC, and CI/CD pipelines."
-model: gemini-3.5-pro
+model: gemini-3.6-pro
 skills:
   - terraform-specialist
   - github-actions-templates

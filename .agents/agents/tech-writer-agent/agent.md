@@ -1,7 +1,7 @@
 ---
 name: tech-writer-agent
 description: "Technical Writer Agent specializing in Git strategies, ADR documentation, C4 architecture models, and Markdown reporting."
-model: gemini-3.5-flash
+model: gemini-3.6-flash
 skills:
   - git-advanced-workflows
   - architecture-decision-records
