@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marketplace-sandbox"
+version = "0.1.0"
+description = "Real-Time Marketplace Data Platform Sandbox"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort (import sorting)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "A",   # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "RUF", # Ruff-specific rules
+]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["ingestion", "processing", "transformation", "observability", "scripts"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra -q --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]

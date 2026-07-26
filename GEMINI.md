@@ -39,7 +39,7 @@ When invoking sub-agents via `invoke_subagent`, assign tasks according to the fo
     *   *Responsibilities*: Develop components in Python 3.12+ (simulators, utilities, automations), databases (PostgreSQL/SQL), unit/integration test suites with pytest, strictly following linting standards (Ruff), static typing, and specific error handling.
 8.  **educational-agent**
     *   *Scope*: Educational documentation and learning journal generation after completed roadmap tasks.
-    *   *Responsibilities*: Transform completed implementations into structured 10-section study guides in [docs/learning/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/), detailing architectural decisions, engineering trade-offs, concept deep-dives, alternative approaches, and industry perspectives. Runs on `gemini-3.6-flash`.
+    *   *Responsibilities*: Transform completed implementations into structured 10-section study guides inside step-based subdirectories in [docs/learning/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/) following the pattern `docs/learning/step-NN-<step-slug>/YYYY-MM-DD-session-NN-<topic-slug>.md` and update [docs/learning/README.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/README.md). Runs on `gemini-3.6-flash`.
 
 ---
 
