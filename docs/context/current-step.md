@@ -1,40 +1,25 @@
-# Current Step: Step 2 — Business Domain Modeling
-
-## Completed Tasks
-- [x] Define and document the business event `order_creation` (attributes, semantic meaning, triggers)
-    * **Assigned Agent**: `tech-writer-agent`
-- [x] Define and document the business event `payment_updates` (attributes, semantic meaning, triggers)
-    * **Assigned Agent**: `tech-writer-agent`
-- [x] Define and document the business events `cart_events` and `stock_updates` (attributes, semantic meaning, triggers)
-    * **Assigned Agent**: `tech-writer-agent`
-- [x] Define and document the business events `user_navigation` and `catalog_changes` (attributes, semantic meaning, triggers)
-    * **Assigned Agent**: `tech-writer-agent`
-- [x] Specify data contract schemas (Avro) for `order_creation` and `payment_updates`, detailing data types, nullability, and validation rules
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Specify data contract schemas (Avro) for `cart_events` and `stock_updates`, detailing data types, nullability, and validation rules
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Specify data contract schemas (Avro) for `user_navigation` and `catalog_changes`, detailing data types, nullability, and validation rules
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Programmatically register Avro schemas into local Confluent Schema Registry (`scripts/register_schemas.py`, `ingestion/schema_registry.py`)
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Create serialization & validation module (`ingestion/serialization.py`) supporting Avro binary and Confluent wire format
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Add unit & integration test suites (`tests/test_schema_registry.py`, `tests/test_serialization.py`) validating parsing, registration, and serialization
-    * **Assigned Agent**: `software-engineer-agent`
+# Current Step: Step 2 Refinement — Schema Registry Caching & Avro Logical Types
 
 ## Active Tasks
 
-### Phase 2: Schema Design and Data Contracts
-*(Completed)*
-
-### Phase 3: Kafka Schema Registry Implementation
-- [x] Develop Python scripts to programmatically register the defined Avro/JSON schemas into the local Confluent Schema Registry
+### Phase 1: Schema Registry Client & Caching Refinements
+- [ ] Add an in-memory LRU cache (`_schema_id_cache`) to `SchemaRegistryManager.get_schema_by_id()` in [ingestion/schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py) to prevent redundant HTTP requests during payload deserialization
     * **Assigned Agent**: `software-engineer-agent`
-- [x] Define serialization patterns and create a common library/module for producing and consuming these schemas
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Write integration tests validating that the schemas register successfully and that mock payloads serialize correctly against them
+- [ ] Implement compatibility level configuration methods (`set_compatibility_level`, `get_compatibility_level`) in [ingestion/schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py) and update [scripts/register_schemas.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/register_schemas.py) to enforce `BACKWARD` compatibility on all subjects
     * **Assigned Agent**: `software-engineer-agent`
 
-### Phase 4: Formal Documentation
-- [x] Consolidate all event definitions, data contracts, and registry interaction details into a formal markdown document in `docs/business_domain_modeling.md`
+### Phase 2: Avro Logical Types & Precision Evolution
+- [ ] Update all 6 Avro schemas under [ingestion/schemas/avro/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schemas/avro/) to use Avro logicalType for timestamps (`{"type": "long", "logicalType": "timestamp-millis"}`) instead of ISO 8601 strings
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Refactor financial monetary fields across all schemas (`total_amount`, `subtotal_amount`, `unit_price`, `shipping_fee`, `discount_amount`, `previous_price`) to use Avro `decimal` logical types (`{"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 4}`) or integer cents to eliminate floating-point imprecision
+    * **Assigned Agent**: `data-engineer-agent`
+
+### Phase 3: Serialization Module & Test Suite Update
+- [ ] Update [ingestion/serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py) to seamlessly handle Python `datetime` objects and `decimal.Decimal` instances during Avro encoding/decoding
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Update and expand pytest test suites ([tests/test_schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_schema_registry.py), [tests/test_serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_serialization.py)) to test LRU cache hits, compatibility enforcement, timestamp-millis conversion, and decimal precision serialization
+    * **Assigned Agent**: `software-engineer-agent`
+
+### Phase 4: Formal Documentation Consolidation
+- [ ] Update formal documentation in [docs/business_domain_modeling.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/business_domain_modeling.md) with updated Avro logical types, caching strategy, and compatibility rules
     * **Assigned Agent**: `tech-writer-agent`
