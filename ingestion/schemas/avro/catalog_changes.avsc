@@ -1,0 +1,81 @@
+{
+  "type": "record",
+  "name": "CatalogChangeEvent",
+  "namespace": "com.marketplace.catalog",
+  "doc": "Schema for Catalog Changes business event emitted on merchant catalog edits.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Catalog action discriminator (PRODUCT_CREATED, PRODUCT_UPDATED, PRICE_CHANGED, PRODUCT_DEACTIVATED)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "product_id",
+      "type": "string",
+      "doc": "Unique catalog product identifier (UUID v4)"
+    },
+    {
+      "name": "seller_id",
+      "type": "string",
+      "doc": "Merchant owning the product (UUID v4)"
+    },
+    {
+      "name": "sku",
+      "type": "string",
+      "doc": "Merchant Stock Keeping Unit code"
+    },
+    {
+      "name": "product_name",
+      "type": "string",
+      "doc": "Commercial title of the product"
+    },
+    {
+      "name": "category_id",
+      "type": "string",
+      "doc": "Primary category identifier (UUID v4)"
+    },
+    {
+      "name": "brand",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Brand or manufacturer name"
+    },
+    {
+      "name": "price",
+      "type": "double",
+      "doc": "New list price in standard currency"
+    },
+    {
+      "name": "previous_price",
+      "type": [
+        "null",
+        "double"
+      ],
+      "default": null,
+      "doc": "Prior list price before modification (null if PRODUCT_CREATED)"
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "doc": "Catalog availability flag"
+    },
+    {
+      "name": "updated_by",
+      "type": "string",
+      "doc": "User or system agent making edit"
+    }
+  ]
+}

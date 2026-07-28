@@ -1,0 +1,93 @@
+{
+  "type": "record",
+  "name": "UserNavigationEvent",
+  "namespace": "com.marketplace.navigation",
+  "doc": "Schema for User Navigation clickstream telemetry event.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Interaction type discriminator (PAGE_VIEW, PRODUCT_CLICK, SEARCH_QUERY, CATEGORY_BROWSE)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "session_id",
+      "type": "string",
+      "doc": "User active session identifier (UUID v4)"
+    },
+    {
+      "name": "user_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Authenticated user identifier (UUID v4 if logged in, null if guest)"
+    },
+    {
+      "name": "device_type",
+      "type": "string",
+      "doc": "Client hardware classification (DESKTOP, MOBILE, TABLET)"
+    },
+    {
+      "name": "ip_address",
+      "type": "string",
+      "doc": "Client IP address for geolocation"
+    },
+    {
+      "name": "user_agent",
+      "type": "string",
+      "doc": "HTTP User-Agent string"
+    },
+    {
+      "name": "page_url",
+      "type": "string",
+      "doc": "Fully qualified target URL"
+    },
+    {
+      "name": "referrer_url",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "HTTP Referrer / Previous page URL"
+    },
+    {
+      "name": "product_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Viewed/clicked product identifier (UUID v4)"
+    },
+    {
+      "name": "category_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Viewed category identifier (UUID v4)"
+    },
+    {
+      "name": "search_term",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Query term entered in search bar (non-null only for SEARCH_QUERY)"
+    }
+  ]
+}

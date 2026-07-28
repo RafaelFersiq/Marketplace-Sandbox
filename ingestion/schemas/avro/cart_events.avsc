@@ -1,0 +1,79 @@
+{
+  "type": "record",
+  "name": "CartEvent",
+  "namespace": "com.marketplace.cart",
+  "doc": "Schema for Shopping Cart business event emitted on cart modifications.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Cart operation discriminator (CART_ITEM_ADDED, CART_ITEM_REMOVED, CART_QUANTITY_UPDATED, CART_CLEARED)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "cart_id",
+      "type": "string",
+      "doc": "Unique active cart identifier (UUID v4)"
+    },
+    {
+      "name": "user_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Authenticated user identifier (UUID v4 if logged in, null if guest)"
+    },
+    {
+      "name": "session_id",
+      "type": "string",
+      "doc": "Web/App session tracking identifier (UUID v4)"
+    },
+    {
+      "name": "product_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Catalog product target of change (UUID v4, null when CART_CLEARED)"
+    },
+    {
+      "name": "quantity",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null,
+      "doc": "Item quantity added, removed, or set (null when CART_CLEARED)"
+    },
+    {
+      "name": "unit_price",
+      "type": [
+        "null",
+        "double"
+      ],
+      "default": null,
+      "doc": "Listed unit price at action time (null when CART_CLEARED)"
+    },
+    {
+      "name": "cart_total_items",
+      "type": "int",
+      "doc": "Total count of items in cart post-event"
+    },
+    {
+      "name": "cart_total_value",
+      "type": "double",
+      "doc": "Accumulated total value of cart post-event"
+    }
+  ]
+}

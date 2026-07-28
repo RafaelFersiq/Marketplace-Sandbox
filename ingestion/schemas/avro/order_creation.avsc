@@ -1,0 +1,167 @@
+{
+  "type": "record",
+  "name": "OrderCreationEvent",
+  "namespace": "com.marketplace.order",
+  "doc": "Schema for Order Creation business event emitted when a customer completes checkout.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Event action discriminator (ORDER_CREATED)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "order_id",
+      "type": "string",
+      "doc": "Unique identifier of the created order (UUID v4)"
+    },
+    {
+      "name": "customer_id",
+      "type": "string",
+      "doc": "Unique identifier of the purchasing customer (UUID v4)"
+    },
+    {
+      "name": "seller_id",
+      "type": "string",
+      "doc": "Primary seller identifier fulfilling the order (UUID v4)"
+    },
+    {
+      "name": "order_status",
+      "type": "string",
+      "doc": "Initial lifecycle status of order (PENDING_PAYMENT, CREATED)"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "ISO 4217 currency code (e.g. BRL, USD)"
+    },
+    {
+      "name": "subtotal_amount",
+      "type": "double",
+      "doc": "Sum of line items price before adjustments"
+    },
+    {
+      "name": "discount_amount",
+      "type": "double",
+      "doc": "Total monetary discount applied"
+    },
+    {
+      "name": "shipping_fee",
+      "type": "double",
+      "doc": "Total shipping / freight charge"
+    },
+    {
+      "name": "total_amount",
+      "type": "double",
+      "doc": "Final payable total (subtotal - discount + shipping)"
+    },
+    {
+      "name": "payment_method",
+      "type": "string",
+      "doc": "Selected payment instrument (CREDIT_CARD, PIX, BOLETO, DEBIT_CARD)"
+    },
+    {
+      "name": "shipping_address",
+      "type": {
+        "type": "record",
+        "name": "ShippingAddress",
+        "doc": "Nested delivery location metadata",
+        "fields": [
+          {
+            "name": "street",
+            "type": "string",
+            "doc": "Street name or thoroughfare"
+          },
+          {
+            "name": "number",
+            "type": "string",
+            "doc": "Building or house number"
+          },
+          {
+            "name": "complement",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null,
+            "doc": "Additional building or apartment details"
+          },
+          {
+            "name": "city",
+            "type": "string",
+            "doc": "Destination city name"
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "doc": "Destination state or province code (2 uppercase letters)"
+          },
+          {
+            "name": "zip_code",
+            "type": "string",
+            "doc": "Postal or Zip code"
+          },
+          {
+            "name": "country",
+            "type": "string",
+            "doc": "2-letter ISO country code"
+          }
+        ]
+      },
+      "doc": "Nested delivery location details"
+    },
+    {
+      "name": "items",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "OrderItem",
+          "doc": "Line item details within an order",
+          "fields": [
+            {
+              "name": "item_id",
+              "type": "string",
+              "doc": "Unique line item identifier (UUID v4)"
+            },
+            {
+              "name": "product_id",
+              "type": "string",
+              "doc": "Unique catalog product identifier (UUID v4)"
+            },
+            {
+              "name": "product_name",
+              "type": "string",
+              "doc": "Name of product at purchase time"
+            },
+            {
+              "name": "quantity",
+              "type": "int",
+              "doc": "Number of units purchased"
+            },
+            {
+              "name": "unit_price",
+              "type": "double",
+              "doc": "Unit price at purchase time"
+            },
+            {
+              "name": "subtotal",
+              "type": "double",
+              "doc": "Line total (unit_price * quantity)"
+            }
+          ]
+        }
+      },
+      "doc": "List of purchased line items"
+    }
+  ]
+}

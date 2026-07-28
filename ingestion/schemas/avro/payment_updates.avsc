@@ -1,0 +1,86 @@
+{
+  "type": "record",
+  "name": "PaymentUpdateEvent",
+  "namespace": "com.marketplace.payment",
+  "doc": "Schema for Payment Updates business event emitted when a transaction status changes.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Event action discriminator (PAYMENT_STATUS_UPDATED)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "payment_id",
+      "type": "string",
+      "doc": "Unique transaction identifier (UUID v4)"
+    },
+    {
+      "name": "order_id",
+      "type": "string",
+      "doc": "Associated order identifier (UUID v4)"
+    },
+    {
+      "name": "customer_id",
+      "type": "string",
+      "doc": "Unique customer identifier (UUID v4)"
+    },
+    {
+      "name": "payment_method",
+      "type": "string",
+      "doc": "Payment instrument evaluated (CREDIT_CARD, PIX, BOLETO, DEBIT_CARD)"
+    },
+    {
+      "name": "payment_status",
+      "type": "string",
+      "doc": "Current monetary execution status (AUTHORIZED, APPROVED, DECLINED, REFUNDED, FAILED)"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Total monetary amount processed"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "ISO 4217 currency code (e.g. BRL, USD)"
+    },
+    {
+      "name": "gateway_provider",
+      "type": "string",
+      "doc": "Payment gateway provider identifier (STRIPE, PAGSEGURO, MOCK_GATEWAY)"
+    },
+    {
+      "name": "transaction_reference",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "External gateway authorization reference"
+    },
+    {
+      "name": "failure_reason",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Diagnostic error code or rejection detail"
+    },
+    {
+      "name": "installments",
+      "type": "int",
+      "doc": "Number of payment installments"
+    }
+  ]
+}

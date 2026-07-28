@@ -25,7 +25,7 @@ docs/learning/
 │   ├── 2026-07-26-session-03-containerized-infrastructure-docker-compose.md
 │   └── 2026-07-26-session-04-local-service-verification-and-cicd-tooling.md
 └── step-02-business-domain-modeling/
-    └── (em desenvolvimento)
+    └── 2026-07-26-session-05-business-events-specification.md
 ```
 
 ---
@@ -37,6 +37,9 @@ docs/learning/
 * [Sessão 02: Inicialização do PostgreSQL, Separação de Metadados e Schemas da Arquitetura Medalhão](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-25-session-02-postgres-database-initialization.md) *(25/07/2026)*
 * [Sessão 03: Infraestrutura Containerizada da Plataforma via Docker Compose](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-03-containerized-infrastructure-docker-compose.md) *(26/07/2026)*
 * [Sessão 04: Verificação dos Serviços Locais, Esteira de CI/CD e Ferramental de Qualidade](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-04-local-service-verification-and-cicd-tooling.md) *(26/07/2026)*
+
+### Step 2 — Modelagem de Domínio de Negócio
+* [Sessão 05: Especificação dos Eventos de Negócio do Marketplace](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-26-session-05-business-events-specification.md) *(26/07/2026)*
 
 ---
 

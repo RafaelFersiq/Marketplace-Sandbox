@@ -1,0 +1,72 @@
+{
+  "type": "record",
+  "name": "StockUpdateEvent",
+  "namespace": "com.marketplace.stock",
+  "doc": "Schema for Stock Updates business event emitted on inventory variations.",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique telemetry event identifier (UUID v4)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Inventory operation discriminator (STOCK_RESERVED, STOCK_RELEASED, STOCK_REPLENISHED, STOCK_ADJUSTED)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+    },
+    {
+      "name": "inventory_id",
+      "type": "string",
+      "doc": "Inventory audit log identifier (UUID v4)"
+    },
+    {
+      "name": "product_id",
+      "type": "string",
+      "doc": "Target catalog product SKU/ID (UUID v4)"
+    },
+    {
+      "name": "seller_id",
+      "type": "string",
+      "doc": "Merchant owning the inventory (UUID v4)"
+    },
+    {
+      "name": "warehouse_id",
+      "type": "string",
+      "doc": "Fulfillment center / warehouse ID"
+    },
+    {
+      "name": "quantity_change",
+      "type": "int",
+      "doc": "Quantity variation delta (negative for reservations, positive for additions)"
+    },
+    {
+      "name": "previous_stock",
+      "type": "int",
+      "doc": "Available stock prior to update"
+    },
+    {
+      "name": "new_stock",
+      "type": "int",
+      "doc": "Available stock post-update"
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "doc": "Business rationale for change (ORDER_RESERVATION, CANCELLED_ORDER, REPLENISHMENT, DAMAGED_ITEM)"
+    },
+    {
+      "name": "order_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Associated order identifier (UUID v4 if caused by an order, null otherwise)"
+    }
+  ]
+}
