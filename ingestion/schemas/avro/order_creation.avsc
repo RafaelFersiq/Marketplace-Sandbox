@@ -16,8 +16,11 @@
     },
     {
       "name": "timestamp",
-      "type": "string",
-      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Milliseconds since UTC Unix epoch"
     },
     {
       "name": "order_id",
@@ -46,23 +49,43 @@
     },
     {
       "name": "subtotal_amount",
-      "type": "double",
-      "doc": "Sum of line items price before adjustments"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "discount_amount",
-      "type": "double",
-      "doc": "Total monetary discount applied"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "shipping_fee",
-      "type": "double",
-      "doc": "Total shipping / freight charge"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "total_amount",
-      "type": "double",
-      "doc": "Final payable total (subtotal - discount + shipping)"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "payment_method",
@@ -150,13 +173,23 @@
             },
             {
               "name": "unit_price",
-              "type": "double",
-              "doc": "Unit price at purchase time"
+              "type": {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 18,
+                "scale": 4
+              },
+              "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
             },
             {
               "name": "subtotal",
-              "type": "double",
-              "doc": "Line total (unit_price * quantity)"
+              "type": {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 18,
+                "scale": 4
+              },
+              "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
             }
           ]
         }

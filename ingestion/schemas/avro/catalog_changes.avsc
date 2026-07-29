@@ -16,8 +16,11 @@
     },
     {
       "name": "timestamp",
-      "type": "string",
-      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Milliseconds since UTC Unix epoch"
     },
     {
       "name": "product_id",
@@ -55,17 +58,27 @@
     },
     {
       "name": "price",
-      "type": "double",
-      "doc": "New list price in standard currency"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "previous_price",
       "type": [
         "null",
-        "double"
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 18,
+          "scale": 4
+        }
       ],
       "default": null,
-      "doc": "Prior list price before modification (null if PRODUCT_CREATED)"
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "is_active",

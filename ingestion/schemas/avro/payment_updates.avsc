@@ -16,8 +16,11 @@
     },
     {
       "name": "timestamp",
-      "type": "string",
-      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Milliseconds since UTC Unix epoch"
     },
     {
       "name": "payment_id",
@@ -46,8 +49,13 @@
     },
     {
       "name": "amount",
-      "type": "double",
-      "doc": "Total monetary amount processed"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "currency",

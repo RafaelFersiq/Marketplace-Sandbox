@@ -91,11 +91,13 @@ def main() -> int:
     manager = SchemaRegistryManager()
 
     try:
-        results = manager.register_all_schemas_in_dir(schemas_dir)
+        logger.info("Enforcing BACKWARD compatibility and registering all Avro schemas...")
+        results = manager.register_all_schemas_in_dir(schemas_dir, compatibility_level="BACKWARD")
         logger.info(
             "Schema registration completed successfully. Registered subjects count: %d",
             len(results),
         )
+
         for subject, schema_id in results.items():
             logger.info(
                 "Subject '%s' registered with ID %d.",

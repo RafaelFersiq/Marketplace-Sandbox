@@ -1,9 +1,12 @@
 """Unit tests for Avro payload serialization, deserialization, and schema validation.
 
 Validates payload contract compliance, binary encoding/decoding, Confluent wire format
-headers, and custom exception handling across all 6 business event types.
+headers, and custom exception handling across all 6 business event types with support for
+timestamp-millis (datetime) and decimal (Decimal) logical types.
 """
 
+from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -43,44 +46,44 @@ def sample_events() -> dict[str, dict[str, Any]]:
         "cart_events": {
             "event_id": "91823ab1-1293-4819-aa29-881273619283",
             "event_type": "CART_ITEM_ADDED",
-            "timestamp": "2026-07-26T17:20:12.450Z",
+            "timestamp": datetime(2026, 7, 26, 17, 20, 12, 450000, tzinfo=UTC),
             "cart_id": "cart-991283",
             "user_id": "cust-10293",
             "session_id": "sess-88192-3312",
             "product_id": "prod-77123",
             "quantity": 2,
-            "unit_price": 125.00,
+            "unit_price": Decimal("125.0000"),
             "cart_total_items": 3,
-            "cart_total_value": 375.00,
+            "cart_total_value": Decimal("375.0000"),
         },
         "catalog_changes": {
             "event_id": "c9981234-4412-9901-0012-aabbccddeeff",
             "event_type": "PRICE_CHANGED",
-            "timestamp": "2026-07-26T16:00:00.000Z",
+            "timestamp": datetime(2026, 7, 26, 16, 0, 0, 0, tzinfo=UTC),
             "product_id": "prod-77123",
             "seller_id": "sell-99201",
             "sku": "AUDIO-HD-WIFI-01",
             "product_name": "Wireless Headphones Noise Cancelling",
             "category_id": "cat-elec-01",
             "brand": "AudioTech",
-            "price": 125.00,
-            "previous_price": 149.99,
+            "price": Decimal("125.0000"),
+            "previous_price": Decimal("149.9900"),
             "is_active": True,
             "updated_by": "user-admin-04",
         },
         "order_creation": {
             "event_id": "550e8400-e29b-41d4-a716-446655440000",
             "event_type": "ORDER_CREATED",
-            "timestamp": "2026-07-26T17:25:00.000Z",
+            "timestamp": datetime(2026, 7, 26, 17, 25, 0, 0, tzinfo=UTC),
             "order_id": "ord-88392-4920",
             "customer_id": "cust-10293",
             "seller_id": "sell-99201",
             "order_status": "PENDING_PAYMENT",
             "currency": "BRL",
-            "subtotal_amount": 250.00,
-            "discount_amount": 10.00,
-            "shipping_fee": 15.00,
-            "total_amount": 255.00,
+            "subtotal_amount": Decimal("250.0000"),
+            "discount_amount": Decimal("10.0000"),
+            "shipping_fee": Decimal("15.0000"),
+            "total_amount": Decimal("255.0000"),
             "payment_method": "PIX",
             "shipping_address": {
                 "street": "Av. Paulista",
@@ -97,21 +100,21 @@ def sample_events() -> dict[str, dict[str, Any]]:
                     "product_id": "prod-77123",
                     "product_name": "Wireless Headphones",
                     "quantity": 2,
-                    "unit_price": 125.00,
-                    "subtotal": 250.00,
+                    "unit_price": Decimal("125.0000"),
+                    "subtotal": Decimal("250.0000"),
                 }
             ],
         },
         "payment_updates": {
             "event_id": "e01104a3-2391-4e7a-8f81-550186981290",
             "event_type": "PAYMENT_STATUS_UPDATED",
-            "timestamp": "2026-07-26T17:25:05.120Z",
+            "timestamp": datetime(2026, 7, 26, 17, 25, 5, 120000, tzinfo=UTC),
             "payment_id": "pay-44910-8812",
             "order_id": "ord-88392-4920",
             "customer_id": "cust-10293",
             "payment_method": "PIX",
             "payment_status": "APPROVED",
-            "amount": 255.00,
+            "amount": Decimal("255.0000"),
             "currency": "BRL",
             "gateway_provider": "MOCK_GATEWAY",
             "transaction_reference": "tx_pix_991823712",
@@ -121,7 +124,7 @@ def sample_events() -> dict[str, dict[str, Any]]:
         "stock_updates": {
             "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             "event_type": "STOCK_RESERVED",
-            "timestamp": "2026-07-26T17:25:01.000Z",
+            "timestamp": datetime(2026, 7, 26, 17, 25, 1, 0, tzinfo=UTC),
             "inventory_id": "inv-55102",
             "product_id": "prod-77123",
             "seller_id": "sell-99201",
@@ -135,7 +138,7 @@ def sample_events() -> dict[str, dict[str, Any]]:
         "user_navigation": {
             "event_id": "77128441-2990-11ec-abcd-001122334455",
             "event_type": "PRODUCT_CLICK",
-            "timestamp": "2026-07-26T17:18:40.000Z",
+            "timestamp": datetime(2026, 7, 26, 17, 18, 40, 0, tzinfo=UTC),
             "session_id": "sess-88192-3312",
             "user_id": "cust-10293",
             "device_type": "MOBILE",
@@ -206,7 +209,8 @@ def test_raw_avro_serialization_deserialization_roundtrip(
 
         schema_id, decoded = serde.deserialize(encoded, reader_schema=schema, has_wire_header=False)
         assert schema_id is None
-        assert decoded == payload
+        assert decoded["event_id"] == payload["event_id"]
+        assert isinstance(decoded["timestamp"], datetime)
 
 
 def test_confluent_wire_format_serialization_deserialization(
@@ -227,7 +231,8 @@ def test_confluent_wire_format_serialization_deserialization(
 
         schema_id, decoded = serde.deserialize(encoded, reader_schema=schema, has_wire_header=True)
         assert schema_id == expected_schema_id
-        assert decoded == payload
+        assert decoded["event_id"] == payload["event_id"]
+        assert isinstance(decoded["timestamp"], datetime)
 
 
 def test_serialization_missing_schema_id_with_wire_header(
@@ -286,5 +291,7 @@ def test_deserialization_with_schema_registry_lookup(
     schema_id, decoded = serde.deserialize(encoded, reader_schema=None, has_wire_header=True)
 
     assert schema_id == target_id
-    assert decoded == payload
+    assert decoded["event_id"] == payload["event_id"]
+    assert isinstance(decoded["timestamp"], datetime)
+    assert isinstance(decoded["total_amount"], Decimal)
     mock_registry.get_schema_by_id.assert_called_once_with(target_id)

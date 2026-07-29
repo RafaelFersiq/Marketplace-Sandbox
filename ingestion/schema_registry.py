@@ -25,6 +25,17 @@ DEFAULT_SUBJECT_MAPPING: dict[str, str] = {
     "user_navigation": "marketplace.navigation-value",
 }
 
+VALID_COMPATIBILITY_LEVELS: set[str] = {
+    "BACKWARD",
+    "BACKWARD_TRANSITIVE",
+    "FORWARD",
+    "FORWARD_TRANSITIVE",
+    "FULL",
+    "FULL_TRANSITIVE",
+    "NONE",
+}
+
+
 
 class SchemaRegistryError(Exception):
     """Base exception for Schema Registry operations."""
@@ -77,6 +88,8 @@ class SchemaRegistryManager:
         self.retry_attempts = max(1, retry_attempts)
         self.retry_backoff = retry_backoff
         self.session = session or requests.Session()
+        self._schema_id_cache: dict[int, dict[str, Any]] = {}
+
 
     def _request_with_retry(
         self,
@@ -161,6 +174,12 @@ class SchemaRegistryManager:
         if response.status_code in (200, 201):
             data = response.json()
             schema_id = int(data["id"])
+            schema_dict = (
+                schema_dict_or_str
+                if isinstance(schema_dict_or_str, dict)
+                else json.loads(schema_dict_or_str)
+            )
+            self._schema_id_cache[schema_id] = schema_dict
             logger.info(
                 "Successfully registered schema for subject '%s' with ID %d.",
                 subject,
@@ -204,6 +223,7 @@ class SchemaRegistryManager:
             data = response.json()
             schema_id = int(data["id"])
             schema_dict = json.loads(data["schema"])
+            self._schema_id_cache[schema_id] = schema_dict
             return schema_id, schema_dict
 
         raise SchemaRegistryError(
@@ -212,6 +232,9 @@ class SchemaRegistryManager:
 
     def get_schema_by_id(self, schema_id: int) -> dict[str, Any]:
         """Fetch a schema by its global unique Schema ID.
+
+        Checks the in-memory schema cache first. On cache miss, queries the Schema Registry endpoint
+        and stores the resulting schema dictionary in the cache.
 
         Args:
             schema_id: The schema identifier integer.
@@ -223,6 +246,14 @@ class SchemaRegistryManager:
             SchemaNotFoundError: If schema ID is not registered.
             SchemaRegistryError: On HTTP error.
         """
+        if schema_id in self._schema_id_cache:
+            logger.debug(
+                "Schema ID %d retrieved from in-memory cache.",
+                schema_id,
+                extra={"schema_id": schema_id},
+            )
+            return self._schema_id_cache[schema_id]
+
         endpoint = f"/schemas/ids/{schema_id}"
         response = self._request_with_retry("GET", endpoint)
 
@@ -231,10 +262,99 @@ class SchemaRegistryManager:
 
         if response.status_code == 200:
             data = response.json()
-            return json.loads(data["schema"])
+            schema_dict = json.loads(data["schema"])
+            self._schema_id_cache[schema_id] = schema_dict
+            return schema_dict
 
         raise SchemaRegistryError(
             f"Failed to fetch schema ID {schema_id} (HTTP {response.status_code}): {response.text}"
+        )
+
+    def clear_schema_cache(self) -> None:
+        """Clear all cached schema definitions from memory."""
+        self._schema_id_cache.clear()
+        logger.info("In-memory schema cache cleared.")
+
+    def get_compatibility_level(self, subject: str | None = None) -> str:
+        """Query global or subject-level compatibility configuration.
+
+        Args:
+            subject: Optional subject name. If None, queries global compatibility configuration.
+
+        Returns:
+            Compatibility level string (e.g., 'BACKWARD').
+
+        Raises:
+            SchemaNotFoundError: If subject compatibility configuration does not exist (HTTP 404).
+            SchemaRegistryError: On HTTP or unexpected response format errors.
+        """
+        endpoint = f"/config/{subject}" if subject else "/config"
+        response = self._request_with_retry("GET", endpoint)
+
+        if response.status_code == 404:
+            target = f"subject '{subject}'" if subject else "global configuration"
+            raise SchemaNotFoundError(f"Compatibility configuration for {target} not found.")
+
+        if response.status_code == 200:
+            data = response.json()
+            level = data.get("compatibilityLevel") or data.get("compatibility")
+            if level:
+                return str(level)
+            raise SchemaRegistryError(
+                f"Unexpected response structure when fetching compatibility level: {data}"
+            )
+
+        raise SchemaRegistryError(
+            f"Failed to fetch compatibility level (HTTP {response.status_code}): {response.text}"
+        )
+
+    def set_compatibility_level(self, compatibility_level: str, subject: str | None = None) -> bool:
+        """Set the compatibility mode globally or for a specific subject.
+
+        Args:
+            compatibility_level: One of 'BACKWARD', 'BACKWARD_TRANSITIVE', 'FORWARD',
+                'FORWARD_TRANSITIVE', 'FULL', 'FULL_TRANSITIVE', 'NONE'.
+            subject: Optional subject name. If None, updates global compatibility level.
+
+        Returns:
+            True if setting the compatibility level succeeded.
+
+        Raises:
+            ValueError: If an unsupported compatibility level is provided.
+            SchemaRegistryError: On HTTP request failure.
+        """
+        level_upper = compatibility_level.upper()
+        if level_upper not in VALID_COMPATIBILITY_LEVELS:
+            valid_str = ", ".join(sorted(VALID_COMPATIBILITY_LEVELS))
+            raise ValueError(
+                f"Invalid compatibility level '{compatibility_level}'. Must be one of: {valid_str}"
+            )
+
+        endpoint = f"/config/{subject}" if subject else "/config"
+        payload = {"compatibility": level_upper}
+
+        response = self._request_with_retry("PUT", endpoint, json_data=payload)
+
+        if response.status_code == 200:
+            target = f"subject '{subject}'" if subject else "global config"
+            logger.info(
+                "Successfully set compatibility level to '%s' for %s.",
+                level_upper,
+                target,
+                extra={"compatibility_level": level_upper, "subject": subject},
+            )
+            return True
+
+        error_detail = response.text
+        logger.error(
+            "Failed to set compatibility level to '%s' (HTTP %d): %s",
+            level_upper,
+            response.status_code,
+            error_detail,
+            extra={"status_code": response.status_code, "subject": subject},
+        )
+        raise SchemaRegistryError(
+            f"Failed to set compatibility level to '{level_upper}' (HTTP {response.status_code}): {error_detail}"
         )
 
     def check_compatibility(self, subject: str, schema_dict_or_str: dict[str, Any] | str) -> bool:
@@ -294,12 +414,14 @@ class SchemaRegistryManager:
         self,
         schemas_dir: str | Path,
         subject_mapping: dict[str, str] | None = None,
+        compatibility_level: str | None = "BACKWARD",
     ) -> dict[str, int]:
         """Load and register all .avsc schemas from a directory into the Schema Registry.
 
         Args:
             schemas_dir: Directory containing .avsc schema files.
             subject_mapping: Mapping of file stem -> subject name. Defaults to DEFAULT_SUBJECT_MAPPING.
+            compatibility_level: Optional compatibility level to set for each subject prior to schema registration.
 
         Returns:
             Dictionary mapping subject names to registered schema IDs.
@@ -318,9 +440,13 @@ class SchemaRegistryManager:
             stem = schema_file.stem
             subject = mapping.get(stem, f"{stem}-value")
 
+            if compatibility_level:
+                self.set_compatibility_level(compatibility_level, subject=subject)
+
             schema_dict, _ = self.load_schema_from_file(schema_file)
             schema_id = self.register_schema(subject, schema_dict)
             registered_ids[subject] = schema_id
 
         logger.info("Successfully registered %d schemas in Schema Registry.", len(registered_ids))
         return registered_ids
+

@@ -62,9 +62,9 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | `catalog_changes` | `marketplace.catalog` | `marketplace.catalog-value` | `product_id` | Product Catalog & Merchant Admin |
 
 ### 1.3 Universal Data Standards
-1. **Timestamp Format**: All event timestamps MUST be UTC ISO 8601 strings with millisecond precision (`YYYY-MM-DDTHH:MM:SS.sssZ`).
+1. **Timestamp Format**: All event timestamps MUST use Avro `timestamp-millis` logical type (64-bit integer representing milliseconds since UTC Unix epoch, e.g. `1785000300000`).
 2. **Identifier Format**: Primary entity keys (`event_id`, `order_id`, `customer_id`, etc.) MUST use 128-bit UUID v4 strings.
-3. **Monetary Precision**: Currency amounts are formatted as double-precision floating points accompanied by 3-letter uppercase ISO 4217 currency codes (e.g. `"BRL"`, `"USD"`).
+3. **Monetary Precision**: Currency amounts are formatted as fixed-precision decimals (`decimal(18,4)`) accompanied by 3-letter uppercase ISO 4217 currency codes (e.g. `"BRL"`, `"USD"`).
 4. **Ordering & Partitioning**: Messages are partitioned by core entity IDs (`order_id`, `product_id`, etc.) to guarantee sequential evaluation across Kafka consumer groups.
 
 ---
@@ -89,16 +89,16 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"550e8400-e29b-41d4-a716-446655440000"` |
 | `event_type` | String | Event discriminator | Required | Must be `"ORDER_CREATED"` | `"ORDER_CREATED"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T17:25:00.000Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1785000300000` |
 | `order_id` | String | Created order ID | Required | Valid UUID v4 | `"ord-88392-4920"` |
 | `customer_id` | String | Purchasing customer ID | Required | Valid UUID v4 | `"cust-10293"` |
 | `seller_id` | String | Primary fulfilling seller ID | Required | Valid UUID v4 | `"sell-99201"` |
 | `order_status` | String | Initial order status | Required | Allowed: `"PENDING_PAYMENT"`, `"CREATED"` | `"PENDING_PAYMENT"` |
 | `currency` | String | ISO currency code | Required | 3 uppercase letters | `"BRL"` |
-| `subtotal_amount` | Double | Line items total | Required | Double `> 0.00` | `250.00` |
-| `discount_amount` | Double | Discount applied | Required | Double `>= 0.00` | `10.00` |
-| `shipping_fee` | Double | Freight fee | Required | Double `>= 0.00` | `15.00` |
-| `total_amount` | Double | Total payable amount | Required | Double `> 0.00` (`subtotal - discount + shipping`) | `255.00` |
+| `subtotal_amount` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` | `250.0000` |
+| `discount_amount` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `>= 0.0000` | `10.0000` |
+| `shipping_fee` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `>= 0.0000` | `15.0000` |
+| `total_amount` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` (`subtotal - discount + shipping`) | `255.0000` |
 | `payment_method` | String | Payment instrument | Required | Allowed: `"CREDIT_CARD"`, `"PIX"`, `"BOLETO"`, `"DEBIT_CARD"` | `"PIX"` |
 | `shipping_address` | Record | Delivery address details | Required | Nested `ShippingAddress` record | `{...}` |
 | `shipping_address.street` | String | Street name | Required | Non-empty string | `"Av. Paulista"` |
@@ -113,8 +113,8 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | `items[].product_id` | String | Catalog SKU / Product ID | Required | Valid UUID v4 | `"prod-77123"` |
 | `items[].product_name` | String | Product name at checkout | Required | Non-empty string | `"Wireless Headphones"` |
 | `items[].quantity` | Integer | Units purchased | Required | Integer `>= 1` | `2` |
-| `items[].unit_price` | Double | Unit price | Required | Double `> 0.00` | `125.00` |
-| `items[].subtotal` | Double | Line total | Required | Double `> 0.00` (`unit_price * quantity`) | `250.00` |
+| `items[].unit_price` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` | `125.0000` |
+| `items[].subtotal` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` (`unit_price * quantity`) | `250.0000` |
 
 #### Canonical Payload Sample
 
@@ -122,16 +122,16 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "550e8400-e29b-41d4-a716-446655440000",
   "event_type": "ORDER_CREATED",
-  "timestamp": "2026-07-26T17:25:00.000Z",
+  "timestamp": 1785000300000,
   "order_id": "ord-88392-4920",
   "customer_id": "cust-10293",
   "seller_id": "sell-99201",
   "order_status": "PENDING_PAYMENT",
   "currency": "BRL",
-  "subtotal_amount": 250.00,
-  "discount_amount": 10.00,
-  "shipping_fee": 15.00,
-  "total_amount": 255.00,
+  "subtotal_amount": 250.0000,
+  "discount_amount": 10.0000,
+  "shipping_fee": 15.0000,
+  "total_amount": 255.0000,
   "payment_method": "PIX",
   "shipping_address": {
     "street": "Av. Paulista",
@@ -148,8 +148,8 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
       "product_id": "prod-77123",
       "product_name": "Wireless Headphones",
       "quantity": 2,
-      "unit_price": 125.00,
-      "subtotal": 250.00
+      "unit_price": 125.0000,
+      "subtotal": 250.0000
     }
   ]
 }
@@ -173,13 +173,13 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"e01104a3-2391-4e7a-8f81-550186981290"` |
 | `event_type` | String | Event discriminator | Required | Must be `"PAYMENT_STATUS_UPDATED"` | `"PAYMENT_STATUS_UPDATED"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T17:25:05.120Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1785000305120` |
 | `payment_id` | String | Unique transaction ID | Required | Valid UUID v4 | `"pay-44910-8812"` |
 | `order_id` | String | Associated order ID | Required | Valid UUID v4 | `"ord-88392-4920"` |
 | `customer_id` | String | Purchasing customer ID | Required | Valid UUID v4 | `"cust-10293"` |
 | `payment_method` | String | Payment instrument | Required | Allowed: `"CREDIT_CARD"`, `"PIX"`, `"BOLETO"`, `"DEBIT_CARD"` | `"PIX"` |
 | `payment_status` | String | Gateway status | Required | Allowed: `"AUTHORIZED"`, `"APPROVED"`, `"DECLINED"`, `"REFUNDED"`, `"FAILED"` | `"APPROVED"` |
-| `amount` | Double | Processed amount | Required | Double `> 0.00` | `255.00` |
+| `amount` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` | `255.0000` |
 | `currency` | String | ISO currency code | Required | 3 uppercase letters | `"BRL"` |
 | `gateway_provider` | String | Gateway service ID | Required | Allowed: `"STRIPE"`, `"PAGSEGURO"`, `"MOCK_GATEWAY"` | `"MOCK_GATEWAY"` |
 | `transaction_reference` | String / Null | Gateway ref string | Nullable | External reference or null | `"tx_pix_991823712"` |
@@ -192,13 +192,13 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "e01104a3-2391-4e7a-8f81-550186981290",
   "event_type": "PAYMENT_STATUS_UPDATED",
-  "timestamp": "2026-07-26T17:25:05.120Z",
+  "timestamp": 1785000305120,
   "payment_id": "pay-44910-8812",
   "order_id": "ord-88392-4920",
   "customer_id": "cust-10293",
   "payment_method": "PIX",
   "payment_status": "APPROVED",
-  "amount": 255.00,
+  "amount": 255.0000,
   "currency": "BRL",
   "gateway_provider": "MOCK_GATEWAY",
   "transaction_reference": "tx_pix_991823712",
@@ -225,15 +225,15 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"91823ab1-1293-4819-aa29-881273619283"` |
 | `event_type` | String | Cart operation discriminator | Required | Allowed: `"CART_ITEM_ADDED"`, `"CART_ITEM_REMOVED"`, `"CART_QUANTITY_UPDATED"`, `"CART_CLEARED"` | `"CART_ITEM_ADDED"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T17:20:12.450Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1785000012450` |
 | `cart_id` | String | Active shopping cart ID | Required | Valid UUID v4 | `"cart-991283"` |
 | `user_id` | String / Null | Authenticated customer ID | Nullable | Valid UUID v4 if logged in, else null | `"cust-10293"` |
 | `session_id` | String | Web/App session ID | Required | Valid UUID v4 | `"sess-88192-3312"` |
 | `product_id` | String / Null | Target product SKU/ID | Nullable | Valid UUID v4; null when `"CART_CLEARED"` | `"prod-77123"` |
 | `quantity` | Integer / Null | Delta or set quantity | Nullable | Integer `>= 1`; null when `"CART_CLEARED"` | `2` |
-| `unit_price` | Double / Null | Unit price at time of action | Nullable | Double `> 0.00`; null when `"CART_CLEARED"` | `125.00` |
+| `unit_price` | Decimal (18,4) / Null | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Nullable | Decimal `> 0.0000`; null when `"CART_CLEARED"` | `125.0000` |
 | `cart_total_items` | Integer | Total count of items post-event | Required | Integer `>= 0` | `3` |
-| `cart_total_value` | Double | Accumulated cart value | Required | Double `>= 0.00` | `375.00` |
+| `cart_total_value` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `>= 0.0000` | `375.0000` |
 
 #### Canonical Payload Sample
 
@@ -241,15 +241,15 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "91823ab1-1293-4819-aa29-881273619283",
   "event_type": "CART_ITEM_ADDED",
-  "timestamp": "2026-07-26T17:20:12.450Z",
+  "timestamp": 1785000012450,
   "cart_id": "cart-991283",
   "user_id": "cust-10293",
   "session_id": "sess-88192-3312",
   "product_id": "prod-77123",
   "quantity": 2,
-  "unit_price": 125.00,
+  "unit_price": 125.0000,
   "cart_total_items": 3,
-  "cart_total_value": 375.00
+  "cart_total_value": 375.0000
 }
 ```
 
@@ -271,7 +271,7 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"` |
 | `event_type` | String | Inventory discriminator | Required | Allowed: `"STOCK_RESERVED"`, `"STOCK_RELEASED"`, `"STOCK_REPLENISHED"`, `"STOCK_ADJUSTED"` | `"STOCK_RESERVED"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T17:25:01.000Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1785000301000` |
 | `inventory_id` | String | Inventory record ID | Required | Valid UUID v4 | `"inv-55102"` |
 | `product_id` | String | Catalog Product SKU / ID | Required | Valid UUID v4 | `"prod-77123"` |
 | `seller_id` | String | Merchant seller ID | Required | Valid UUID v4 | `"sell-99201"` |
@@ -288,7 +288,7 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "event_type": "STOCK_RESERVED",
-  "timestamp": "2026-07-26T17:25:01.000Z",
+  "timestamp": 1785000301000,
   "inventory_id": "inv-55102",
   "product_id": "prod-77123",
   "seller_id": "sell-99201",
@@ -319,7 +319,7 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"77128441-2990-11ec-abcd-001122334455"` |
 | `event_type` | String | Interaction type | Required | Allowed: `"PAGE_VIEW"`, `"PRODUCT_CLICK"`, `"SEARCH_QUERY"`, `"CATEGORY_BROWSE"` | `"PRODUCT_CLICK"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T17:18:40.000Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1784999920000` |
 | `session_id` | String | User session ID | Required | Valid UUID v4 | `"sess-88192-3312"` |
 | `user_id` | String / Null | Authenticated user ID | Nullable | Valid UUID v4 if logged in, else null | `"cust-10293"` |
 | `device_type` | String | Hardware category | Required | Allowed: `"DESKTOP"`, `"MOBILE"`, `"TABLET"` | `"MOBILE"` |
@@ -337,7 +337,7 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "77128441-2990-11ec-abcd-001122334455",
   "event_type": "PRODUCT_CLICK",
-  "timestamp": "2026-07-26T17:18:40.000Z",
+  "timestamp": 1784999920000,
   "session_id": "sess-88192-3312",
   "user_id": "cust-10293",
   "device_type": "MOBILE",
@@ -369,15 +369,15 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `event_id` | String | Telemetry event identifier | Required | Valid UUID v4 | `"c9981234-4412-9901-0012-aabbccddeeff"` |
 | `event_type` | String | Catalog action | Required | Allowed: `"PRODUCT_CREATED"`, `"PRODUCT_UPDATED"`, `"PRICE_CHANGED"`, `"PRODUCT_DEACTIVATED"` | `"PRICE_CHANGED"` |
-| `timestamp` | String | Event UTC timestamp | Required | ISO 8601 (`YYYY-MM-DDTHH:MM:SS.sssZ`) | `"2026-07-26T16:00:00.000Z"` |
+| `timestamp` | Long (timestamp-millis) | Milliseconds since UTC Unix epoch | Required | 64-bit integer >= 0 | `1784995200000` |
 | `product_id` | String | Target product ID | Required | Valid UUID v4 | `"prod-77123"` |
 | `seller_id` | String | Merchant seller ID | Required | Valid UUID v4 | `"sell-99201"` |
 | `sku` | String | Merchant SKU code | Required | Non-empty alphanumeric string | `"AUDIO-HD-WIFI-01"` |
 | `product_name` | String | Commercial product title | Required | Non-empty string | `"Wireless Headphones Noise Cancelling"` |
 | `category_id` | String | Primary category ID | Required | Valid UUID v4 | `"cat-elec-01"` |
 | `brand` | String / Null | Brand name | Nullable | Optional string or null | `"AudioTech"` |
-| `price` | Double | New list price | Required | Double `> 0.00` | `125.00` |
-| `previous_price` | Double / Null | Prior list price | Nullable | Double `> 0.00`; null if `"PRODUCT_CREATED"` | `149.99` |
+| `price` | Decimal (18,4) | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Required | Decimal `> 0.0000` | `125.0000` |
+| `previous_price` | Decimal (18,4) / Null | Monetary value represented as fixed-precision decimal (precision 18, scale 4) | Nullable | Decimal `> 0.0000`; null if `"PRODUCT_CREATED"` | `149.9900` |
 | `is_active` | Boolean | Catalog availability flag | Required | `true` or `false` | `true` |
 | `updated_by` | String | Admin or seller user ID | Required | Non-empty user string | `"user-admin-04"` |
 
@@ -387,15 +387,15 @@ All events are emitted to dedicated Kafka topics following domain-driven naming 
 {
   "event_id": "c9981234-4412-9901-0012-aabbccddeeff",
   "event_type": "PRICE_CHANGED",
-  "timestamp": "2026-07-26T16:00:00.000Z",
+  "timestamp": 1784995200000,
   "product_id": "prod-77123",
   "seller_id": "sell-99201",
   "sku": "AUDIO-HD-WIFI-01",
   "product_name": "Wireless Headphones Noise Cancelling",
   "category_id": "cat-elec-01",
   "brand": "AudioTech",
-  "price": 125.00,
-  "previous_price": 149.99,
+  "price": 125.0000,
+  "previous_price": 149.9900,
   "is_active": true,
   "updated_by": "user-admin-04"
 }
@@ -419,9 +419,9 @@ All 6 data contract schemas are formally specified using Apache Avro IDL (JSON s
 | `user_navigation` | `UserNavigationEvent` | `com.marketplace.navigation` | [user_navigation.avsc](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schemas/avro/user_navigation.avsc) | `marketplace.navigation-value` | `marketplace.navigation` |
 
 ### 3.2 Avro Structural Highlights
-1. **Nullability Unions**: Optional fields utilize Avro union types (e.g. `["null", "string"]` with `"default": null`) to maintain backward compatibility when evolving fields.
+1. **Nullability Unions**: Optional fields utilize Avro union types (e.g. `["null", "string"]` or `["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 4}]` with `"default": null`) to maintain backward compatibility when evolving fields.
 2. **Complex Nested Structs**: `order_creation.avsc` incorporates nested records (`ShippingAddress`) and record arrays (`OrderItem`) to model multi-item orders atomically.
-3. **Primitive Mapping**: Text identifiers map to Avro `string`, quantities map to `int`, monetary/ratio values map to `double`, and flags map to `boolean`.
+3. **Logical Types & Precision**: Timestamps use Avro `timestamp-millis` (`long`) logical type, and monetary amounts use `decimal` (`bytes`, precision 18, scale 4) to eliminate floating-point rounding errors across financial pipelines.
 
 ---
 
@@ -463,20 +463,23 @@ Messages emitted to Kafka do not embed the entire Avro schema payload (which wou
 
 ### 4.4 Ingestion & SerDe Core Modules
 
-#### `ingestion/schema_registry.py`
-The [SchemaRegistryManager](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py#L45-L327) class handles HTTP REST interactions with Schema Registry:
-* `register_schema(subject, schema_dict_or_str)`: POSTs schema to `/subjects/<subject>/versions` and returns assigned `schema_id`.
-* `get_latest_schema(subject)`: Fetches the latest registered schema dict and ID.
-* `get_schema_by_id(schema_id)`: Resolves a schema definition from `/schemas/ids/<schema_id>`.
+#### [ingestion/schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py)
+The [SchemaRegistryManager](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py) class handles HTTP REST interactions with Schema Registry:
+* `register_schema(subject, schema_dict_or_str)`: POSTs schema to `/subjects/<subject>/versions` and returns assigned `schema_id`. Caches schema definition in memory (`_schema_id_cache`).
+* `get_latest_schema(subject)`: Fetches the latest registered schema dict and ID. Caches schema definition in memory (`_schema_id_cache`).
+* `get_schema_by_id(schema_id)`: Resolves a schema definition from `/schemas/ids/<schema_id>`. Serves hits directly from in-memory LRU cache (`_schema_id_cache`) to avoid redundant HTTP requests during payload deserialization.
+* `clear_schema_cache()`: Clears all cached schema definitions from memory.
+* `get_compatibility_level(subject=None)`: Queries global (`GET /config`) or subject-level (`GET /config/<subject>`) schema compatibility mode.
+* `set_compatibility_level(compatibility_level, subject=None)`: Sets global (`PUT /config`) or subject-level (`PUT /config/<subject>`) compatibility mode (`BACKWARD`, `BACKWARD_TRANSITIVE`, `FORWARD`, `FORWARD_TRANSITIVE`, `FULL`, `FULL_TRANSITIVE`, `NONE`).
 * `check_compatibility(subject, schema_dict_or_str)`: Checks compatibility against existing subject versions.
-* `register_all_schemas_in_dir(schemas_dir)`: Loads all `.avsc` files in a directory and registers them using `DEFAULT_SUBJECT_MAPPING`.
+* `register_all_schemas_in_dir(schemas_dir, compatibility_level="BACKWARD")`: Loads all `.avsc` files in a directory, sets compatibility level (enforcing `BACKWARD` by default on all subjects), and registers them under `DEFAULT_SUBJECT_MAPPING`.
 * **Resilience**: Features exponential backoff retries (`_request_with_retry`) for network tolerance.
 
-#### `ingestion/serialization.py`
-The [AvroSerializerDeserializer](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py#L37-L192) class manages validation and binary conversion:
-* `validate(payload, schema)`: Verifies payload compliance against Avro schema using `fastavro.validate`.
-* `serialize(payload, schema, schema_id, include_wire_header=True)`: Validates payload, prepends 5-byte wire format header `\x00 + struct.pack('>I', schema_id)`, and encodes payload.
-* `deserialize(data, reader_schema=None, has_wire_header=True)`: Parses 5-byte header, extracts `schema_id`, dynamically fetches schema via `SchemaRegistryManager` if `reader_schema` is omitted, and decodes binary data.
+#### [ingestion/serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py)
+The [AvroSerializerDeserializer](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py) class manages validation and binary conversion:
+* `validate(payload, schema)`: Verifies payload compliance against Avro schema using `fastavro.validate`. Preprocesses Python `datetime` objects to UTC epoch timestamps (`timestamp-millis`) and `decimal.Decimal` / numerical values to Avro decimals.
+* `serialize(payload, schema, schema_id, include_wire_header=True)`: Validates payload, prepends 5-byte wire format header `\x00 + struct.pack('>I', schema_id)`, and encodes payload to binary Avro.
+* `deserialize(data, reader_schema=None, has_wire_header=True)`: Parses 5-byte header, extracts `schema_id`, dynamically fetches schema via `SchemaRegistryManager` (leveraging the schema ID cache `_schema_id_cache`) if `reader_schema` is omitted, decodes binary data, and postprocesses output fields to native Python `datetime` and `Decimal` objects.
 
 ---
 
@@ -493,7 +496,7 @@ To register all 6 Avro schemas into the running Confluent Schema Registry contai
    ```bash
    python scripts/register_schemas.py
    ```
-3. Script implementation details: [scripts/register_schemas.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/register_schemas.py). The script loads environment variables, initializes `SchemaRegistryManager`, scans `ingestion/schemas/avro/*.avsc`, registers each subject, and outputs structured JSON logs.
+3. Script implementation details: [scripts/register_schemas.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/register_schemas.py). The script loads environment variables, initializes `SchemaRegistryManager`, scans `[ingestion/schemas/avro/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schemas/avro/)`, sets `BACKWARD` compatibility level on each subject, registers each subject, and outputs structured JSON logs.
 
 ### 5.2 Test Execution Suite
 Automated test suites validate schema parsing, registration, serialization/deserialization, and error handling.
@@ -513,11 +516,13 @@ pytest tests/test_schema_registry.py tests/test_serialization.py -v
 #### Test Suite Breakdown
 * [tests/test_schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_schema_registry.py):
   - Validates `.avsc` syntax and `fastavro.parse_schema` for all 6 schema files.
-  - Tests HTTP registration success, 400 error handling, and retry mechanisms using `unittest.mock`.
+  - Tests HTTP registration success, 400 error handling, LRU cache behavior, compatibility enforcement (`set_compatibility_level`, `BACKWARD`), and retry mechanisms using `unittest.mock`.
   - Includes conditional integration test (`test_live_schema_registry_registration`) executing against `localhost:8081` when the container is operational.
 * [tests/test_serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_serialization.py):
   - Tests schema validation success across all 6 sample event payloads.
   - Validates failure modes (missing required fields, invalid primitive types).
   - Tests roundtrip raw Avro and 5-byte Confluent wire format serialization/deserialization.
   - Validates error handling for missing `schema_id`, invalid magic byte (`!= 0x00`), and truncated headers (`< 5 bytes`).
-  - Verifies dynamic schema resolution via `SchemaRegistryManager` during deserialization.
+  - Verifies dynamic schema resolution via `SchemaRegistryManager` (with in-memory schema ID caching) during deserialization.
+  - Verifies automatic handling of Python `datetime` objects (`timestamp-millis`) and `decimal.Decimal` instances (`decimal(18,4)`).
+

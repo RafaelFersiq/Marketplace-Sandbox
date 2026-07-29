@@ -16,8 +16,11 @@
     },
     {
       "name": "timestamp",
-      "type": "string",
-      "doc": "Event emission timestamp in UTC ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Milliseconds since UTC Unix epoch"
     },
     {
       "name": "cart_id",
@@ -60,10 +63,15 @@
       "name": "unit_price",
       "type": [
         "null",
-        "double"
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 18,
+          "scale": 4
+        }
       ],
       "default": null,
-      "doc": "Listed unit price at action time (null when CART_CLEARED)"
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     },
     {
       "name": "cart_total_items",
@@ -72,8 +80,13 @@
     },
     {
       "name": "cart_total_value",
-      "type": "double",
-      "doc": "Accumulated total value of cart post-event"
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 18,
+        "scale": 4
+      },
+      "doc": "Monetary value represented as fixed-precision decimal (precision 18, scale 4)"
     }
   ]
 }
