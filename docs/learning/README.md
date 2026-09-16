@@ -24,10 +24,12 @@ docs/learning/
 │   ├── 2026-07-25-session-02-postgres-database-initialization.md
 │   ├── 2026-07-26-session-03-containerized-infrastructure-docker-compose.md
 │   └── 2026-07-26-session-04-local-service-verification-and-cicd-tooling.md
-└── step-02-business-domain-modeling/
-    ├── 2026-07-26-session-05-business-events-specification.md
-    ├── 2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md
-    └── 2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md
+├── step-02-business-domain-modeling/
+│   ├── 2026-07-26-session-05-business-events-specification.md
+│   ├── 2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md
+│   └── 2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md
+└── step-03-building-event-producers/
+    └── 2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md
 ```
 
 ---
@@ -35,15 +37,18 @@ docs/learning/
 ## 🗺️ Logs de Sessão do Roadmap
 
 ### Step 1 — Estruturação Inicial do Projeto
-* [Sessão 01: Configuração do Workspace, Estratégia de Branching e Variáveis de Ambiente](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-23-session-01-workspace-setup-and-git-governance.md) *(23/07/2026)*
-* [Sessão 02: Inicialização do PostgreSQL, Separação de Metadados e Schemas da Arquitetura Medalhão](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-25-session-02-postgres-database-initialization.md) *(25/07/2026)*
-* [Sessão 03: Infraestrutura Containerizada da Plataforma via Docker Compose](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-03-containerized-infrastructure-docker-compose.md) *(26/07/2026)*
-* [Sessão 04: Verificação dos Serviços Locais, Esteira de CI/CD e Ferramental de Qualidade](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-04-local-service-verification-and-cicd-tooling.md) *(26/07/2026)*
+* [Sessão 01: Configuração do Workspace, Estratégia de Branching e Variáveis de Ambiente](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-23-session-01-workspace-setup-and-git-governance.md) *(23/07/2026)*
+* [Sessão 02: Inicialização do PostgreSQL, Separação de Metadados e Schemas da Arquitetura Medalhão](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-25-session-02-postgres-database-initialization.md) *(25/07/2026)*
+* [Sessão 03: Infraestrutura Containerizada da Plataforma via Docker Compose](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-03-containerized-infrastructure-docker-compose.md) *(26/07/2026)*
+* [Sessão 04: Verificação dos Serviços Locais, Esteira de CI/CD e Ferramental de Qualidade](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-01-initial-project-structuring/2026-07-26-session-04-local-service-verification-and-cicd-tooling.md) *(26/07/2026)*
 
 ### Step 2 — Modelagem de Domínio de Negócio
-* [Sessão 05: Especificação dos Eventos de Negócio do Marketplace](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-26-session-05-business-events-specification.md) *(26/07/2026)*
-* [Sessão 06: Esquemas Avro, Contratos de Dados e Confluent Schema Registry](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md) *(28/07/2026)*
-* [Sessão 07: Refinamento de Schemas Avro com Tipos Lógicos, Cache LRU e Compatibilidade Backward](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md) *(28/07/2026)*
+* [Sessão 05: Especificação dos Eventos de Negócio do Marketplace](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-26-session-05-business-events-specification.md) *(26/07/2026)*
+* [Sessão 06: Esquemas Avro, Contratos de Dados e Confluent Schema Registry](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md) *(28/07/2026)*
+* [Sessão 07: Refinamento de Schemas Avro com Tipos Lógicos, Cache LRU e Compatibilidade Backward](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md) *(28/07/2026)*
+
+### Step 3 — Construção de Produtores de Eventos
+* [Sessão 08: Framework Base de Produtores Kafka e Motor de Geração Sintética de Eventos](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md) *(29/07/2026)*
 
 ---
 

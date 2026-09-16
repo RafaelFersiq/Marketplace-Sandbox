@@ -1,27 +1,41 @@
-# Current Step: Step 2 Refinement — Schema Registry Caching & Avro Logical Types
+# Current Step: Step 3 — Building Event Producers
 
 ## Active Tasks
 
-### Phase 1: Schema Registry Client & Caching Refinements
-- [x] Add an in-memory LRU cache (`_schema_id_cache`) to `SchemaRegistryManager.get_schema_by_id()` in [ingestion/schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py) to prevent redundant HTTP requests during payload deserialization
+### Phase 1: Ingestion Infrastructure & Base Producer Framework
+- [x] Implement the abstract base producer class `BaseProducer` in [ingestion/producers/base_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/base_producer.py) providing Kafka client configuration, Confluent Schema Registry wire-format serialization via [ingestion/serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py), rate limiting, delivery callbacks, and thread-safe execution
     * **Assigned Agent**: `software-engineer-agent`
-- [x] Implement compatibility level configuration methods (`set_compatibility_level`, `get_compatibility_level`) in [ingestion/schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schema_registry.py) and update [scripts/register_schemas.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/register_schemas.py) to enforce `BACKWARD` compatibility on all subjects
-    * **Assigned Agent**: `software-engineer-agent`
-
-
-### Phase 2: Avro Logical Types & Precision Evolution
-- [x] Update all 6 Avro schemas under [ingestion/schemas/avro/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/schemas/avro/) to use Avro logicalType for timestamps (`{"type": "long", "logicalType": "timestamp-millis"}`) instead of ISO 8601 strings
+- [x] Build the synthetic data generation engine in [ingestion/producers/generator.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/generator.py) using `Faker` and custom generators to generate domain entity data, handling updated Avro logical types (`timestamp-millis` long integers and `decimal(18,4)` Decimal objects)
     * **Assigned Agent**: `data-engineer-agent`
-- [x] Refactor financial monetary fields across all schemas (`total_amount`, `subtotal_amount`, `unit_price`, `shipping_fee`, `discount_amount`, `previous_price`, `cart_total_value`, `amount`, `price`, `subtotal`) to use Avro `decimal` logical types (`{"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 4}`) to eliminate floating-point imprecision
+- [x] Build producer configuration and CLI entry point utilities in [ingestion/producers/config.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/config.py) to manage Kafka broker parameters, Schema Registry settings, topic mappings, target event throughput rate, and execution runtime
+    * **Assigned Agent**: `software-engineer-agent`
+
+### Phase 2: Domain Producers Implementation
+- [ ] Implement `CheckoutProducer` in [ingestion/producers/checkout_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/checkout_producer.py) for publishing `order_creation` events to `marketplace.orders` and `cart_events` to `marketplace.cart` with valid entity identifiers and monetary fields
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `PaymentProducer` in [ingestion/producers/payment_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/payment_producer.py) for publishing `payment_updates` events to `marketplace.payments` with realistic payment gateway status transitions (`AUTHORIZED`, `APPROVED`, `DECLINED`, `REFUNDED`, `FAILED`)
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `NavigationProducer` in [ingestion/producers/navigation_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/navigation_producer.py) emitting high-volume clickstream events (`user_navigation`) to `marketplace.navigation` simulating user sessions, search queries, and page interactions
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `InventoryProducer` in [ingestion/producers/inventory_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/inventory_producer.py) emitting `stock_updates` to `marketplace.inventory` and `catalog_changes` to `marketplace.catalog` covering stock reservations, replenishment, and product updates
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `AntiFraudProducer` in [ingestion/producers/antifraud_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/antifraud_producer.py) emitting security telemetry and generating suspicious activity patterns (rapid checkout frequency, geographical anomalies, unusual high-value orders)
+    * **Assigned Agent**: `software-engineer-agent`
+
+### Phase 3: Chaos & Resilience Simulation Scenarios
+- [ ] Implement `ChaosEngine` in [ingestion/producers/chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/chaos.py) to simulate traffic bursts, variable volume, and delayed or out-of-order events with altered `timestamp-millis` values
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Extend `ChaosEngine` in [ingestion/producers/chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/chaos.py) to inject duplicate event payloads, schema-invalid payloads for Dead Letter Queue testing, and simulate intermittent Kafka connection failures with retry handling
+    * **Assigned Agent**: `software-engineer-agent`
+
+### Phase 4: Integration Testing & Verification
+- [ ] Create unit and component pytest test suites in [tests/test_producers.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_producers.py) and [tests/test_chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_chaos.py) testing event generation, serialization, rate limiting, and chaos scenario generators
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Create CLI simulation script [scripts/run_producer_simulation.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/run_producer_simulation.py) and end-to-end integration test in [tests/test_live_producers.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_live_producers.py) executing real-time streaming against local Kafka broker and Schema Registry
     * **Assigned Agent**: `data-engineer-agent`
 
-### Phase 3: Serialization Module & Test Suite Update
-- [x] Update [ingestion/serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py) to seamlessly handle Python `datetime` objects and `decimal.Decimal` instances during Avro encoding/decoding
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Update and expand pytest test suites ([tests/test_schema_registry.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_schema_registry.py), [tests/test_serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_serialization.py)) to test LRU cache hits, compatibility enforcement, timestamp-millis conversion, and decimal precision serialization
-    * **Assigned Agent**: `software-engineer-agent`
-
-### Phase 4: Formal Documentation Consolidation
-- [x] Update formal documentation in [docs/business_domain_modeling.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/business_domain_modeling.md) with updated Avro logical types, caching strategy, and compatibility rules
+### Phase 5: Documentation
+- [ ] Write comprehensive technical documentation for event producers, architecture, CLI parameters, and chaos simulation scenarios in [docs/event_producers_guide.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/event_producers_guide.md)
     * **Assigned Agent**: `tech-writer-agent`
-
+- [ ] Create session log and architecture decision updates under [docs/learning/step-03-building-event-producers/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/) documenting producer design trade-offs and simulation findings
+    * **Assigned Agent**: `tech-writer-agent`
