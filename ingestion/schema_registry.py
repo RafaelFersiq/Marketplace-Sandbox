@@ -36,7 +36,6 @@ VALID_COMPATIBILITY_LEVELS: set[str] = {
 }
 
 
-
 class SchemaRegistryError(Exception):
     """Base exception for Schema Registry operations."""
 
@@ -89,7 +88,6 @@ class SchemaRegistryManager:
         self.retry_backoff = retry_backoff
         self.session = session or requests.Session()
         self._schema_id_cache: dict[int, dict[str, Any]] = {}
-
 
     def _request_with_retry(
         self,
@@ -158,11 +156,7 @@ class SchemaRegistryManager:
         Raises:
             SchemaRegistrationError: If registration request returns an error HTTP status.
         """
-        schema_str = (
-            json.dumps(schema_dict_or_str)
-            if isinstance(schema_dict_or_str, dict)
-            else schema_dict_or_str
-        )
+        schema_str = json.dumps(schema_dict_or_str) if isinstance(schema_dict_or_str, dict) else schema_dict_or_str
 
         payload = {"schema": schema_str}
         endpoint = f"/subjects/{subject}/versions"
@@ -174,11 +168,7 @@ class SchemaRegistryManager:
         if response.status_code in (200, 201):
             data = response.json()
             schema_id = int(data["id"])
-            schema_dict = (
-                schema_dict_or_str
-                if isinstance(schema_dict_or_str, dict)
-                else json.loads(schema_dict_or_str)
-            )
+            schema_dict = schema_dict_or_str if isinstance(schema_dict_or_str, dict) else json.loads(schema_dict_or_str)
             self._schema_id_cache[schema_id] = schema_dict
             logger.info(
                 "Successfully registered schema for subject '%s' with ID %d.",
@@ -300,13 +290,9 @@ class SchemaRegistryManager:
             level = data.get("compatibilityLevel") or data.get("compatibility")
             if level:
                 return str(level)
-            raise SchemaRegistryError(
-                f"Unexpected response structure when fetching compatibility level: {data}"
-            )
+            raise SchemaRegistryError(f"Unexpected response structure when fetching compatibility level: {data}")
 
-        raise SchemaRegistryError(
-            f"Failed to fetch compatibility level (HTTP {response.status_code}): {response.text}"
-        )
+        raise SchemaRegistryError(f"Failed to fetch compatibility level (HTTP {response.status_code}): {response.text}")
 
     def set_compatibility_level(self, compatibility_level: str, subject: str | None = None) -> bool:
         """Set the compatibility mode globally or for a specific subject.
@@ -326,9 +312,7 @@ class SchemaRegistryManager:
         level_upper = compatibility_level.upper()
         if level_upper not in VALID_COMPATIBILITY_LEVELS:
             valid_str = ", ".join(sorted(VALID_COMPATIBILITY_LEVELS))
-            raise ValueError(
-                f"Invalid compatibility level '{compatibility_level}'. Must be one of: {valid_str}"
-            )
+            raise ValueError(f"Invalid compatibility level '{compatibility_level}'. Must be one of: {valid_str}")
 
         endpoint = f"/config/{subject}" if subject else "/config"
         payload = {"compatibility": level_upper}
@@ -367,11 +351,7 @@ class SchemaRegistryManager:
         Returns:
             True if compatible or if subject does not yet exist, False if incompatible.
         """
-        schema_str = (
-            json.dumps(schema_dict_or_str)
-            if isinstance(schema_dict_or_str, dict)
-            else schema_dict_or_str
-        )
+        schema_str = json.dumps(schema_dict_or_str) if isinstance(schema_dict_or_str, dict) else schema_dict_or_str
 
         endpoint = f"/compatibility/subjects/{subject}/versions/latest"
         payload = {"schema": schema_str}
@@ -449,4 +429,3 @@ class SchemaRegistryManager:
 
         logger.info("Successfully registered %d schemas in Schema Registry.", len(registered_ids))
         return registered_ids
-

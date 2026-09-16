@@ -58,27 +58,26 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 # Create optimized Spark session
-spark = (SparkSession.builder
-    .appName("OptimizedJob")
+spark = (
+    SparkSession.builder.appName("OptimizedJob")
     .config("spark.sql.adaptive.enabled", "true")
     .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
     .config("spark.sql.adaptive.skewJoin.enabled", "true")
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .config("spark.sql.shuffle.partitions", "200")
-    .getOrCreate())
+    .getOrCreate()
+)
 
 # Read with optimized settings
-df = (spark.read
-    .format("parquet")
-    .option("mergeSchema", "false")
-    .load("s3://bucket/data/"))
+df = spark.read.format("parquet").option("mergeSchema", "false").load("s3://bucket/data/")
 
 # Efficient transformations
-result = (df
-    .filter(F.col("date") >= "2024-01-01")
+result = (
+    df.filter(F.col("date") >= "2024-01-01")
     .select("id", "amount", "category")
     .groupBy("category")
-    .agg(F.sum("amount").alias("total")))
+    .agg(F.sum("amount").alias("total"))
+)
 
 result.write.mode("overwrite").parquet("s3://bucket/output/")
 ```
@@ -97,6 +96,7 @@ def calculate_partitions(data_size_gb: float, partition_size_mb: int = 128) -> i
     """
     return max(int(data_size_gb * 1024 / partition_size_mb), 1)
 
+
 # Repartition for even distribution
 df_repartitioned = df.repartition(200, "partition_key")
 
@@ -104,14 +104,10 @@ df_repartitioned = df.repartition(200, "partition_key")
 df_coalesced = df.coalesce(100)
 
 # Partition pruning with predicate pushdown
-df = (spark.read.parquet("s3://bucket/data/")
-    .filter(F.col("date") == "2024-01-01"))  # Spark pushes this down
+df = spark.read.parquet("s3://bucket/data/").filter(F.col("date") == "2024-01-01")  # Spark pushes this down
 
 # Write with partitioning for future queries
-(df.write
-    .partitionBy("year", "month", "day")
-    .mode("overwrite")
-    .parquet("s3://bucket/partitioned_output/"))
+(df.write.partitionBy("year", "month", "day").mode("overwrite").parquet("s3://bucket/partitioned_output/"))
 ```
 
 ### Pattern 2: Join Optimization
@@ -126,11 +122,7 @@ small_df = spark.read.parquet("s3://bucket/small_table/")  # < 10MB
 large_df = spark.read.parquet("s3://bucket/large_table/")  # TBs
 
 # Explicit broadcast hint
-result = large_df.join(
-    F.broadcast(small_df),
-    on="key",
-    how="left"
-)
+result = large_df.join(F.broadcast(small_df), on="key", how="left")
 
 # 2. Sort-Merge Join - Default for large tables
 # Requires shuffle, but handles any size
@@ -138,11 +130,7 @@ result = large_df1.join(large_df2, on="key", how="inner")
 
 # 3. Bucket Join - Pre-sorted, no shuffle at join time
 # Write bucketed tables
-(df.write
-    .bucketBy(200, "customer_id")
-    .sortBy("customer_id")
-    .mode("overwrite")
-    .saveAsTable("bucketed_orders"))
+(df.write.bucketBy(200, "customer_id").sortBy("customer_id").mode("overwrite").saveAsTable("bucketed_orders"))
 
 # Join bucketed tables (no shuffle!)
 orders = spark.table("bucketed_orders")
@@ -155,24 +143,18 @@ spark.conf.set("spark.sql.adaptive.skewJoin.enabled", "true")
 spark.conf.set("spark.sql.adaptive.skewJoin.skewedPartitionFactor", "5")
 spark.conf.set("spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes", "256MB")
 
+
 # Manual salting for severe skew
 def salt_join(df_skewed, df_other, key_col, num_salts=10):
     """Add salt to distribute skewed keys"""
     # Add salt to skewed side
-    df_salted = df_skewed.withColumn(
-        "salt",
-        (F.rand() * num_salts).cast("int")
-    ).withColumn(
-        "salted_key",
-        F.concat(F.col(key_col), F.lit("_"), F.col("salt"))
+    df_salted = df_skewed.withColumn("salt", (F.rand() * num_salts).cast("int")).withColumn(
+        "salted_key", F.concat(F.col(key_col), F.lit("_"), F.col("salt"))
     )
 
     # Explode other side with all salts
-    df_exploded = df_other.crossJoin(
-        spark.range(num_salts).withColumnRenamed("id", "salt")
-    ).withColumn(
-        "salted_key",
-        F.concat(F.col(key_col), F.lit("_"), F.col("salt"))
+    df_exploded = df_other.crossJoin(spark.range(num_salts).withColumnRenamed("id", "salt")).withColumn(
+        "salted_key", F.concat(F.col(key_col), F.lit("_"), F.col("salt"))
     )
 
     # Join on salted key
@@ -213,10 +195,7 @@ df_filtered.unpersist()
 
 # Checkpoint for complex lineage
 spark.sparkContext.setCheckpointDir("s3://bucket/checkpoints/")
-df_complex = (df
-    .join(other_df, "key")
-    .groupBy("category")
-    .agg(F.sum("amount")))
+df_complex = df.join(other_df, "key").groupBy("category").agg(F.sum("amount"))
 df_complex.checkpoint()  # Breaks lineage, materializes
 ```
 
@@ -232,8 +211,8 @@ df_complex.checkpoint()  # Breaks lineage, materializes
 #   - Remaining 2.4GB for execution (shuffles, joins, sorts)
 # - 40% = 3.2GB for user data structures and internal metadata
 
-spark = (SparkSession.builder
-    .config("spark.executor.memory", "8g")
+spark = (
+    SparkSession.builder.config("spark.executor.memory", "8g")
     .config("spark.executor.memoryOverhead", "2g")  # For non-JVM memory
     .config("spark.memory.fraction", "0.6")
     .config("spark.memory.storageFraction", "0.5")
@@ -242,7 +221,9 @@ spark = (SparkSession.builder
     .config("spark.sql.autoBroadcastJoinThreshold", "50MB")
     # Prevent OOM on large shuffles
     .config("spark.sql.files.maxPartitionBytes", "128MB")
-    .getOrCreate())
+    .getOrCreate()
+)
+
 
 # Monitor memory usage
 def print_memory_usage(spark):
@@ -264,13 +245,15 @@ spark.conf.set("spark.shuffle.compress", "true")
 spark.conf.set("spark.shuffle.spill.compress", "true")
 
 # Pre-aggregate before shuffle
-df_optimized = (df
+df_optimized = (
+    df
     # Local aggregation first (combiner)
     .groupBy("key", "partition_col")
     .agg(F.sum("value").alias("partial_sum"))
     # Then global aggregation
     .groupBy("key")
-    .agg(F.sum("partial_sum").alias("total")))
+    .agg(F.sum("partial_sum").alias("total"))
+)
 
 # Avoid shuffle with map-side operations
 # BAD: Shuffle for each distinct
@@ -290,26 +273,28 @@ spark.conf.set("spark.io.compression.codec", "lz4")  # Fast compression
 
 ```python
 # Parquet optimizations
-(df.write
-    .option("compression", "snappy")  # Fast compression
+(
+    df.write.option("compression", "snappy")  # Fast compression
     .option("parquet.block.size", 128 * 1024 * 1024)  # 128MB row groups
-    .parquet("s3://bucket/output/"))
+    .parquet("s3://bucket/output/")
+)
 
 # Column pruning - only read needed columns
-df = (spark.read.parquet("s3://bucket/data/")
-    .select("id", "amount", "date"))  # Spark only reads these columns
+df = spark.read.parquet("s3://bucket/data/").select("id", "amount", "date")  # Spark only reads these columns
 
 # Predicate pushdown - filter at storage level
-df = (spark.read.parquet("s3://bucket/partitioned/year=2024/")
-    .filter(F.col("status") == "active"))  # Pushed to Parquet reader
+df = spark.read.parquet("s3://bucket/partitioned/year=2024/").filter(
+    F.col("status") == "active"
+)  # Pushed to Parquet reader
 
 # Delta Lake optimizations
-(df.write
-    .format("delta")
+(
+    df.write.format("delta")
     .option("optimizeWrite", "true")  # Bin-packing
     .option("autoCompact", "true")  # Compact small files
     .mode("overwrite")
-    .save("s3://bucket/delta_table/"))
+    .save("s3://bucket/delta_table/")
+)
 
 # Z-ordering for multi-dimensional queries
 spark.sql("""
@@ -332,6 +317,7 @@ df.explain(mode="extended")
 # Get physical plan statistics
 df.explain(mode="cost")
 
+
 # Monitor task metrics
 def analyze_stage_metrics(spark):
     """Analyze recent stage metrics"""
@@ -344,14 +330,13 @@ def analyze_stage_metrics(spark):
         print(f"  Completed: {stage_info.numCompletedTasks}")
         print(f"  Failed: {stage_info.numFailedTasks}")
 
+
 # Identify data skew
 def check_partition_skew(df):
     """Check for partition skew"""
-    partition_counts = (df
-        .withColumn("partition_id", F.spark_partition_id())
-        .groupBy("partition_id")
-        .count()
-        .orderBy(F.desc("count")))
+    partition_counts = (
+        df.withColumn("partition_id", F.spark_partition_id()).groupBy("partition_id").count().orderBy(F.desc("count"))
+    )
 
     partition_counts.show(20)
 
@@ -359,7 +344,7 @@ def check_partition_skew(df):
         F.min("count").alias("min"),
         F.max("count").alias("max"),
         F.avg("count").alias("avg"),
-        F.stddev("count").alias("stddev")
+        F.stddev("count").alias("stddev"),
     ).collect()[0]
 
     skew_ratio = stats["max"] / stats["avg"]
@@ -375,28 +360,22 @@ spark_configs = {
     "spark.sql.adaptive.enabled": "true",
     "spark.sql.adaptive.coalescePartitions.enabled": "true",
     "spark.sql.adaptive.skewJoin.enabled": "true",
-
     # Memory
     "spark.executor.memory": "8g",
     "spark.executor.memoryOverhead": "2g",
     "spark.memory.fraction": "0.6",
     "spark.memory.storageFraction": "0.5",
-
     # Parallelism
     "spark.sql.shuffle.partitions": "200",
     "spark.default.parallelism": "200",
-
     # Serialization
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
     "spark.sql.execution.arrow.pyspark.enabled": "true",
-
     # Compression
     "spark.io.compression.codec": "lz4",
     "spark.shuffle.compress": "true",
-
     # Broadcast
     "spark.sql.autoBroadcastJoinThreshold": "50MB",
-
     # File handling
     "spark.sql.files.maxPartitionBytes": "128MB",
     "spark.sql.files.openCostInBytes": "4MB",

@@ -43,3 +43,8 @@ Thumbs.db
 # Antigravity/Gemini CLI temp
 .gemini/
 .agents/scratch/
+
+# MCP Server Binaries & Local Configs
+toolbox
+.mcp.json
+

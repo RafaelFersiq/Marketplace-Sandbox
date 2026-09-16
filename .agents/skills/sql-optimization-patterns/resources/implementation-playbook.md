@@ -185,10 +185,7 @@ results = db.query("""
 # Or batch load
 users = db.query("SELECT * FROM users LIMIT 10")
 user_ids = [u.id for u in users]
-orders = db.query(
-    "SELECT * FROM orders WHERE user_id IN (?)",
-    user_ids
-)
+orders = db.query("SELECT * FROM orders WHERE user_id IN (?)", user_ids)
 # Group orders by user_id
 orders_by_user = {}
 for order in orders:

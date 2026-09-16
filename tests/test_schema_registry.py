@@ -108,8 +108,6 @@ def test_register_all_schemas_in_dir_mocked(schemas_dir: Path, mock_session: Mag
         nonlocal counter
         resp = MagicMock(spec=requests.Response)
 
-
-
         if method == "PUT":
             resp.status_code = 200
             resp.json.return_value = {"compatibility": "BACKWARD"}
@@ -128,7 +126,6 @@ def test_register_all_schemas_in_dir_mocked(schemas_dir: Path, mock_session: Mag
     for _stem, subject in DEFAULT_SUBJECT_MAPPING.items():
         assert subject in results
         assert isinstance(results[subject], int)
-
 
 
 def test_get_latest_schema_mocked(mock_session: MagicMock) -> None:
@@ -199,9 +196,7 @@ def test_get_schema_by_id_cache_hit(mock_session: MagicMock) -> None:
     """Test that get_schema_by_id uses in-memory cache and avoids redundant HTTP requests."""
     mock_response = MagicMock(spec=requests.Response)
     mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "schema": '{"type": "record", "name": "CachedOrderEvent", "fields": []}'
-    }
+    mock_response.json.return_value = {"schema": '{"type": "record", "name": "CachedOrderEvent", "fields": []}'}
     mock_session.request.return_value = mock_response
 
     manager = SchemaRegistryManager(url="http://mock-registry:8081", session=mock_session)
@@ -326,7 +321,6 @@ def test_set_compatibility_level_http_error(mock_session: MagicMock) -> None:
 
     assert "Failed to set compatibility level to 'FORWARD'" in str(exc_info.value)
     assert "400" in str(exc_info.value)
-
 
 
 def test_live_schema_registry_registration(schemas_dir: Path) -> None:

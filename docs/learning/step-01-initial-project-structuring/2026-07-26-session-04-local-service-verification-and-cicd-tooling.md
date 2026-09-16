@@ -294,6 +294,7 @@ def check_tcp_port(host: str, port: int, timeout_sec: float = 3.0) -> bool:
     except (socket.timeout, OSError):
         return False
 
+
 def check_http_endpoint(url: str, expected_status: int = 200, timeout_sec: float = 3.0) -> bool:
     """Verifica se um endpoint HTTP responde com o status code esperado."""
     req = urllib.request.Request(url, headers={"User-Agent": "ServiceVerifier/1.0"})

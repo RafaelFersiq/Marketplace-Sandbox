@@ -53,12 +53,8 @@ context = gx.get_context()
 suite = context.add_expectation_suite("orders_suite")
 
 # Add expectations
-suite.add_expectation(
-    gx.expectations.ExpectColumnValuesToNotBeNull(column="order_id")
-)
-suite.add_expectation(
-    gx.expectations.ExpectColumnValuesToBeUnique(column="order_id")
-)
+suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="order_id"))
+suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="order_id"))
 
 # Validate
 results = context.run_checkpoint(checkpoint_name="daily_orders")
@@ -74,90 +70,96 @@ import great_expectations as gx
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 
+
 def build_orders_suite() -> ExpectationSuite:
     """Build comprehensive orders expectation suite"""
 
     suite = ExpectationSuite(expectation_suite_name="orders_suite")
 
     # Schema expectations
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_table_columns_to_match_set",
-        kwargs={
-            "column_set": ["order_id", "customer_id", "amount", "status", "created_at"],
-            "exact_match": False  # Allow additional columns
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_table_columns_to_match_set",
+            kwargs={
+                "column_set": ["order_id", "customer_id", "amount", "status", "created_at"],
+                "exact_match": False,  # Allow additional columns
+            },
+        )
+    )
 
     # Primary key
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_not_be_null",
-        kwargs={"column": "order_id"}
-    ))
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_be_unique",
-        kwargs={"column": "order_id"}
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(expectation_type="expect_column_values_to_not_be_null", kwargs={"column": "order_id"})
+    )
+    suite.add_expectation(
+        ExpectationConfiguration(expectation_type="expect_column_values_to_be_unique", kwargs={"column": "order_id"})
+    )
 
     # Foreign key
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_not_be_null",
-        kwargs={"column": "customer_id"}
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_not_be_null", kwargs={"column": "customer_id"}
+        )
+    )
 
     # Categorical values
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_be_in_set",
-        kwargs={
-            "column": "status",
-            "value_set": ["pending", "processing", "shipped", "delivered", "cancelled"]
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_in_set",
+            kwargs={"column": "status", "value_set": ["pending", "processing", "shipped", "delivered", "cancelled"]},
+        )
+    )
 
     # Numeric ranges
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_be_between",
-        kwargs={
-            "column": "amount",
-            "min_value": 0,
-            "max_value": 100000,
-            "strict_min": True  # amount > 0
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "amount",
+                "min_value": 0,
+                "max_value": 100000,
+                "strict_min": True,  # amount > 0
+            },
+        )
+    )
 
     # Date validity
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_values_to_be_dateutil_parseable",
-        kwargs={"column": "created_at"}
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_dateutil_parseable", kwargs={"column": "created_at"}
+        )
+    )
 
     # Freshness - data should be recent
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_max_to_be_between",
-        kwargs={
-            "column": "created_at",
-            "min_value": {"$PARAMETER": "now - timedelta(days=1)"},
-            "max_value": {"$PARAMETER": "now"}
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_max_to_be_between",
+            kwargs={
+                "column": "created_at",
+                "min_value": {"$PARAMETER": "now - timedelta(days=1)"},
+                "max_value": {"$PARAMETER": "now"},
+            },
+        )
+    )
 
     # Row count sanity
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_table_row_count_to_be_between",
-        kwargs={
-            "min_value": 1000,  # Expect at least 1000 rows
-            "max_value": 10000000
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_table_row_count_to_be_between",
+            kwargs={
+                "min_value": 1000,  # Expect at least 1000 rows
+                "max_value": 10000000,
+            },
+        )
+    )
 
     # Statistical expectations
-    suite.add_expectation(ExpectationConfiguration(
-        expectation_type="expect_column_mean_to_be_between",
-        kwargs={
-            "column": "amount",
-            "min_value": 50,
-            "max_value": 500
-        }
-    ))
+    suite.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_mean_to_be_between",
+            kwargs={"column": "amount", "min_value": 50, "max_value": 500},
+        )
+    )
 
     return suite
 ```
@@ -212,10 +214,7 @@ context = gx.get_context()
 result = context.run_checkpoint(checkpoint_name="orders_checkpoint")
 
 if not result.success:
-    failed_expectations = [
-        r for r in result.run_results.values()
-        if not r.success
-    ]
+    failed_expectations = [r for r in result.run_results.values() if not r.success]
     raise ValueError(f"Data quality check failed: {failed_expectations}")
 ```
 
@@ -442,6 +441,7 @@ from typing import List, Dict, Any
 import great_expectations as gx
 from datetime import datetime
 
+
 @dataclass
 class QualityResult:
     table: str
@@ -450,6 +450,7 @@ class QualityResult:
     failed_expectations: int
     details: List[Dict[str, Any]]
     timestamp: datetime
+
 
 class DataQualityPipeline:
     """Orchestrate data quality checks across tables"""
@@ -465,13 +466,15 @@ class DataQualityPipeline:
             "name": f"{table}_validation",
             "config_version": 1.0,
             "class_name": "Checkpoint",
-            "validations": [{
-                "batch_request": {
-                    "datasource_name": "warehouse",
-                    "data_asset_name": table,
-                },
-                "expectation_suite_name": suite,
-            }],
+            "validations": [
+                {
+                    "batch_request": {
+                        "datasource_name": "warehouse",
+                        "data_asset_name": table,
+                    },
+                    "expectation_suite_name": suite,
+                }
+            ],
         }
 
         result = self.context.run_checkpoint(**checkpoint_config)
@@ -487,12 +490,15 @@ class DataQualityPipeline:
             passed=result.success,
             total_expectations=len(results),
             failed_expectations=len(failed),
-            details=[{
-                "expectation": r.expectation_config.expectation_type,
-                "success": r.success,
-                "observed_value": r.result.get("observed_value"),
-            } for r in results],
-            timestamp=datetime.now()
+            details=[
+                {
+                    "expectation": r.expectation_config.expectation_type,
+                    "success": r.success,
+                    "observed_value": r.result.get("observed_value"),
+                }
+                for r in results
+            ],
+            timestamp=datetime.now(),
         )
 
     def run_all(self, tables: Dict[str, str]) -> Dict[str, QualityResult]:
@@ -529,6 +535,7 @@ class DataQualityPipeline:
             report.append("")
 
         return "\n".join(report)
+
 
 # Usage
 context = gx.get_context()

@@ -15,7 +15,7 @@ Without an automated mechanism, session documentation tends to be ad-hoc, superf
 * **Educational Value & Portfolio Quality**: Documenting *why* a solution was built, alternative designs, trade-offs, and enterprise production practices alongside code changes.
 * **Workflow Automation**: Automatically triggering documentation generation only upon completing roadmap tasks, avoiding noise from discussions, planning, or refactoring.
 * **Scalable Directory Organization**: A structured hierarchy in `docs/learning/` that grows chronologically and remains easy to browse as sessions accumulate.
-* **Cost and Model Efficiency**: Operating documentation tasks on an inexpensive, token-efficient AI model (`gemini-3.6-flash`) with low reasoning overhead.
+* **Cost and Model Efficiency**: Operating documentation tasks on an inexpensive, token-efficient AI model (`gemini-3.7-flash`) with low reasoning overhead.
 
 ## Options Considered
 
@@ -30,7 +30,7 @@ Use `tech-writer-agent` to handle both system architecture diagrams/ADRs and ses
 * **Cons**: Overloads scope of `tech-writer-agent`. Mixes system-level documentation (C4 diagrams, ADRs) with session-based, step-by-step educational journals.
 
 ### Option 3: Dedicated Educational Subagent (`educational-agent`) with `docs/learning/` journal (Recommended)
-Introduce a specialized `educational-agent` operating on `gemini-3.6-flash` that is triggered exclusively after sessions that complete roadmap tasks.
+Introduce a specialized `educational-agent` operating on `gemini-3.7-flash` that is triggered exclusively after sessions that complete roadmap tasks.
 * **Pros**: Clear separation of concerns, optimized model selection (low cost, fast execution), standardized 10-section learning template, and chronological step-based folder structure.
 * **Cons**: Requires explicit trigger management in the context workflow to prevent execution during non-roadmap sessions.
 
@@ -42,7 +42,7 @@ We chose **Option 3: Dedicated Educational Subagent (`educational-agent`) with `
 
 A dedicated subagent ensures that educational documentation is treated as a first-class citizen with a uniform 10-section structure (Session Summary, What Was Built, Why Built This Way, Important Concepts, Alternative Approaches, Trade-offs, Industry Perspective, Common Mistakes, Further Reading, Key Takeaways). 
 
-Using `gemini-3.6-flash` ensures maximum cost efficiency without sacrificing formatting precision or clarity.
+Using `gemini-3.7-flash` ensures maximum cost efficiency without sacrificing formatting precision or clarity.
 
 ## Consequences
 

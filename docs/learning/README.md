@@ -26,7 +26,8 @@ docs/learning/
 │   └── 2026-07-26-session-04-local-service-verification-and-cicd-tooling.md
 └── step-02-business-domain-modeling/
     ├── 2026-07-26-session-05-business-events-specification.md
-    └── 2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md
+    ├── 2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md
+    └── 2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md
 ```
 
 ---
@@ -42,6 +43,7 @@ docs/learning/
 ### Step 2 — Modelagem de Domínio de Negócio
 * [Sessão 05: Especificação dos Eventos de Negócio do Marketplace](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-26-session-05-business-events-specification.md) *(26/07/2026)*
 * [Sessão 06: Esquemas Avro, Contratos de Dados e Confluent Schema Registry](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md) *(28/07/2026)*
+* [Sessão 07: Refinamento de Schemas Avro com Tipos Lógicos, Cache LRU e Compatibilidade Backward](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-02-business-domain-modeling/2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md) *(28/07/2026)*
 
 ---
 
