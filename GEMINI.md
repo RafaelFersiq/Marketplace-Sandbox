@@ -25,7 +25,7 @@ When invoking sub-agents via `invoke_subagent`, assign tasks according to the fo
     *   *Scope*: Analytical data transformation (Gold layer) and DataOps.
     *   *Responsibilities*: Develop and optimize dbt models (staging, intermediate, and marts/star-schema), implement automated data quality tests (dbt-tests), monitor data lineage (OpenLineage), analytical documentation, and schema/table verification via MCP Toolbox (`toolbox-databases`).
 3.  **devops-infra-agent**
-    *   *Model & Effort*: `gemini-3.7-pro` | `High` effort (deep reasoning for IaC, Docker networks, CI/CD security, and Git worktree isolation).
+    *   *Model & Effort*: `argon 4` | `High` effort (deep reasoning for IaC, Docker networks, CI/CD security, and Git worktree isolation).
     *   *Scope*: Infrastructure as Code (IaC), local container orchestration, and CI/CD governance.
     *   *Responsibilities*: Single source of truth for CI/CD. Configure isolated local environments via `docker-compose.yml`, code AWS provisioning via Terraform, create and manage GitHub Actions CI/CD pipelines via GitHub MCP (`github`), ensure configurations allow isolated execution across multiple Git worktrees, and manage container runtime health via Docker MCP Toolkit (`docker-mcp-gateway`).
 4.  **observability-agent**
@@ -37,7 +37,7 @@ When invoking sub-agents via `invoke_subagent`, assign tasks according to the fo
     *   *Scope*: Technical architecture documentation and Git governance.
     *   *Responsibilities*: Update architecture diagrams, structure Architecture Decision Records (ADRs), maintain updated API and data lake flow documentation, and manage documentation PRs/issues via GitHub MCP (`github`).
 6.  **planning-agent**
-    *   *Model & Effort*: `gemini-3.7-pro` | `High` effort (strategic planning, multi-step decomposition, and architectural alignment).
+    *   *Model & Effort*: `argon 4` | `High` effort (strategic planning, multi-step decomposition, and architectural alignment).
     *   *Scope*: Strategic and tactical project planning.
     *   *Responsibilities*: Analyze the [roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md) and decompose the current or next milestone into atomic, sequential, and structured tasks in the [current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md) file.
 7.  **software-engineer-agent**

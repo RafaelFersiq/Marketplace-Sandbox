@@ -11,6 +11,7 @@ Este diretório contém os Registros de Decisões de Arquitetura (ADRs) para o M
 | [ADR-0003](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/0003-containerized-local-infrastructure.md) | Arquitetura de Infraestrutura Containerizada Local e Simulação Cloud | Accepted | 2026-07-26 |
 | [ADR-0004](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/0004-postgresql-dual-role-architecture.md) | Estratégia e Segregação do PostgreSQL Dual-Role | Accepted | 2026-07-26 |
 | [ADR-0005](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/0005-code-quality-linting-and-cicd-pipeline.md) | Padrões de Qualidade de Código, Linting e Pipeline de CI/CD | Accepted | 2026-07-26 |
+| [ADR-0006](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0006-adoption-of-argon-4-for-high-reasoning-subagents.md) | Adoção do Modelo Argon 4 para Subagentes de Alto Raciocínio (High-Reasoning Tier) | Accepted | 2026-10-24 |
 
 ## Processo para Criação de Novos ADRs
 
