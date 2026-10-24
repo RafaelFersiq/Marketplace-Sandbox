@@ -16,6 +16,7 @@ env/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
 
 # IDEs
 .vscode/
