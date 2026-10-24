@@ -1,7 +1,7 @@
 ---
 name: planning-agent
 description: "Planning Agent responsible for detailing current-step.md based on roadmap.md milestones."
-model: argon-4
+model: pro
 effort: high
 subagent: true
 skills:

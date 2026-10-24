@@ -17,35 +17,35 @@ This file contains identity instructions, code generation rules, output format, 
 When invoking sub-agents via `invoke_subagent`, assign tasks according to the following specialties, model tiers, and reasoning effort levels:
 
 1.  **data-engineer-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Medium` effort (balanced speed and reasoning for stream processing and schema contracts).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Medium` effort (balanced speed and reasoning for stream processing and schema contracts).
     *   *Scope*: Real-time data ingestion, stream processing, and medallion storage layers (Bronze/Silver).
     *   *Responsibilities*: Code Kafka producers in Python, streaming processing scripts in PySpark, schema validation (Confluent Schema Registry), data partitioning in MinIO/S3, and source table inspection via MCP Toolbox (`toolbox-databases`).
 2.  **analytics-engineer-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Medium` effort (balanced reasoning for SQL transformations, dbt models, and lineage).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Medium` effort (balanced reasoning for SQL transformations, dbt models, and lineage).
     *   *Scope*: Analytical data transformation (Gold layer) and DataOps.
     *   *Responsibilities*: Develop and optimize dbt models (staging, intermediate, and marts/star-schema), implement automated data quality tests (dbt-tests), monitor data lineage (OpenLineage), analytical documentation, and schema/table verification via MCP Toolbox (`toolbox-databases`).
 3.  **devops-infra-agent**
-    *   *Model & Effort*: `argon 4` | `High` effort (deep reasoning for IaC, Docker networks, CI/CD security, and Git worktree isolation).
+    *   *Model & Effort*: `argon 4` (Tier: `pro`) | `High` effort (deep reasoning for IaC, Docker networks, CI/CD security, and Git worktree isolation).
     *   *Scope*: Infrastructure as Code (IaC), local container orchestration, and CI/CD governance.
     *   *Responsibilities*: Single source of truth for CI/CD. Configure isolated local environments via `docker-compose.yml`, code AWS provisioning via Terraform, create and manage GitHub Actions CI/CD pipelines via GitHub MCP (`github`), ensure configurations allow isolated execution across multiple Git worktrees, and manage container runtime health via Docker MCP Toolkit (`docker-mcp-gateway`).
 4.  **observability-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Medium` effort (balanced reasoning for Airflow DAGs, Prometheus metrics, and Grafana).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Medium` effort (balanced reasoning for Airflow DAGs, Prometheus metrics, and Grafana).
     *   *Scope*: Workflow orchestration and monitoring.
     *   *Responsibilities*: Develop and parameterize Apache Airflow DAGs, instrument system monitoring and metrics in Prometheus, structure operational dashboards in Grafana, and inspect container metrics via Docker MCP Toolkit (`docker-mcp-gateway`).
 5.  **tech-writer-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Low` effort (fast token-efficient markdown generation, ADR formatting, and diagrams).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Low` effort (fast token-efficient markdown generation, ADR formatting, and diagrams).
     *   *Scope*: Technical architecture documentation and Git governance.
     *   *Responsibilities*: Update architecture diagrams, structure Architecture Decision Records (ADRs), maintain updated API and data lake flow documentation, and manage documentation PRs/issues via GitHub MCP (`github`).
 6.  **planning-agent**
-    *   *Model & Effort*: `argon 4` | `High` effort (strategic planning, multi-step decomposition, and architectural alignment).
+    *   *Model & Effort*: `argon 4` (Tier: `pro`) | `High` effort (strategic planning, multi-step decomposition, and architectural alignment).
     *   *Scope*: Strategic and tactical project planning.
     *   *Responsibilities*: Analyze the [roadmap.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/roadmap.md) and decompose the current or next milestone into atomic, sequential, and structured tasks in the [current-step.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/context/current-step.md) file.
 7.  **software-engineer-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Medium` effort (balanced code generation, Ruff adherence, and unit testing).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Medium` effort (balanced code generation, Ruff adherence, and unit testing).
     *   *Scope*: General software development for the sandbox.
     *   *Responsibilities*: Develop components in Python 3.12+ (simulators, utilities, automations), databases (PostgreSQL/SQL), unit/integration test suites with pytest, strictly following linting standards (Ruff), static typing, error handling, database structure inspection via MCP Toolbox (`toolbox-databases`), and repository/code lookup via GitHub MCP (`github`).
 8.  **educational-agent**
-    *   *Model & Effort*: `gemini-3.7-flash` | `Low` effort (fast educational synthesis and 10-section journal logs in Portuguese).
+    *   *Model & Effort*: `gemini-3.7-flash` (Tier: `flash`) | `Low` effort (fast educational synthesis and 10-section journal logs in Portuguese).
     *   *Scope*: Educational documentation and learning journal generation after completed roadmap tasks.
     *   *Responsibilities*: Transform completed implementations into structured 10-section study guides inside step-based subdirectories in [docs/learning/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/) following the pattern `docs/learning/step-NN-<step-slug>/YYYY-MM-DD-session-NN-<topic-slug>.md` and update [docs/learning/README.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/README.md). Runs on `gemini-3.7-flash`.
 

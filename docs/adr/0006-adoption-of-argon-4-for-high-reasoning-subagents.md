@@ -43,11 +43,13 @@ No entanto, em um ambiente multiagente como o Marketplace Sandbox, aplicar indis
 
 ## Decisão
 
-Adotamos a **Opção 2**. O modelo **Argon 4** passa a ser o modelo oficial para o tier de alto raciocínio (*High Effort*), configurado especificamente para:
+Adotamos a **Opção 2**. O modelo **Argon 4** passa a ser o modelo oficial para o tier de alto raciocínio (*High Effort*), associado ao nível de modelo `pro` (aceito no frontmatter YAML `model: pro` e no parâmetro `Model: 'pro'` da ferramenta `invoke_subagent`).
+
+Os subagentes configurados para o tier `pro` (Argon 4) são:
 1. `planning-agent`
 2. `devops-infra-agent`
 
-Todos os demais subagentes continuam utilizando o modelo `gemini-3.7-flash` configurado com esforço Médio ou Baixo.
+Todos os demais subagentes continuam utilizando o tier `flash` (`gemini-3.7-flash`) configurado com esforço Médio ou Baixo.
 
 ### Justificativa (Rationale)
 

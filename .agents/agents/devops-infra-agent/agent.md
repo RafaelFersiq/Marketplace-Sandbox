@@ -1,7 +1,7 @@
 ---
 name: devops-infra-agent
 description: "DevOps & Infrastructure Agent specializing in local Docker environments, Terraform IaC, and CI/CD pipelines."
-model: argon-4
+model: pro
 effort: high
 subagent: true
 skills:
