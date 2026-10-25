@@ -16,7 +16,11 @@ from typing import Any
 
 import confluent_kafka
 
-from ingestion.producers.config import DEFAULT_TOPIC_SCHEMA_STEM_MAP, ProducerConfig
+from ingestion.producers.config import (
+    DEFAULT_TOPIC_SCHEMA_STEM_MAP,
+    DEFAULT_TOPIC_SUBJECT_MAP,
+    ProducerConfig,
+)
 from ingestion.schema_registry import SchemaRegistryManager
 from ingestion.serialization import AvroSerializerDeserializer, SerializationError
 
@@ -74,21 +78,24 @@ class BaseProducer(ABC):
         self.producer = producer
         self.schema_dict: dict[str, Any] = {}
         self.schema_id: int | None = None
+        self._topic_schemas: dict[str, dict[str, Any]] = {}
+        self._topic_schema_ids: dict[str, int] = {}
         self.is_running: bool = False
         self.metrics = ProducerMetrics()
 
-    def _resolve_schema_path(self) -> Path:
-        """Locate the Avro schema file (.avsc) for this producer."""
-        if self.config.schema_path is not None:
+    def _resolve_schema_path(self, topic: str | None = None) -> Path:
+        """Locate the Avro schema file (.avsc) for a given topic."""
+        target_topic = topic or self.config.topic
+        if target_topic == self.config.topic and self.config.schema_path is not None:
             path = Path(self.config.schema_path)
             if not path.is_file():
                 raise FileNotFoundError(f"Configured schema file not found at: {path}")
             return path
 
-        stem = DEFAULT_TOPIC_SCHEMA_STEM_MAP.get(self.config.topic)
+        stem = DEFAULT_TOPIC_SCHEMA_STEM_MAP.get(target_topic)
         if not stem:
             # Fallback based on topic suffix (e.g. marketplace.orders -> order_creation or orders)
-            topic_clean = self.config.topic.split(".")[-1]
+            topic_clean = target_topic.split(".")[-1]
             stem = topic_clean
 
         schema_dir = Path(__file__).resolve().parent.parent / "schemas" / "avro"
@@ -102,49 +109,85 @@ class BaseProducer(ABC):
                 return file
 
         raise FileNotFoundError(
-            f"Could not automatically resolve schema file for topic '{self.config.topic}' in {schema_dir}"
+            f"Could not automatically resolve schema file for topic '{target_topic}' in {schema_dir}"
         )
 
-    def load_schema(self) -> dict[str, Any]:
-        """Load and parse local Avro schema JSON file.
+    def load_schema(self, topic: str | None = None) -> dict[str, Any]:
+        """Load and parse local Avro schema JSON file for a topic.
+
+        Args:
+            topic: Optional target topic. Defaults to config.topic.
 
         Returns:
             Avro schema dictionary.
         """
-        schema_path = self._resolve_schema_path()
+        target_topic = topic or self.config.topic
+        if target_topic in self._topic_schemas:
+            return self._topic_schemas[target_topic]
+
+        schema_path = self._resolve_schema_path(topic=target_topic)
         with schema_path.open("r", encoding="utf-8") as f:
-            self.schema_dict = json.load(f)
-        return self.schema_dict
+            schema_data: dict[str, Any] = json.load(f)
 
-    def setup(self) -> None:
-        """Prepare producer: load schema, resolve Schema Registry ID, and create Kafka producer."""
-        if not self.schema_dict:
-            self.load_schema()
+        self._topic_schemas[target_topic] = schema_data
+        if target_topic == self.config.topic:
+            self.schema_dict = schema_data
+        return schema_data
 
-        # Check / register schema with Schema Registry
-        subject = self.config.subject
+    def get_or_register_schema(self, topic: str | None = None) -> tuple[dict[str, Any], int]:
+        """Resolve and register Avro schema with Confluent Schema Registry.
+
+        Args:
+            topic: Target topic name. Defaults to self.config.topic.
+
+        Returns:
+            Tuple of (schema_dict, schema_id).
+        """
+        target_topic = topic or self.config.topic
+        if target_topic in self._topic_schemas and target_topic in self._topic_schema_ids:
+            return self._topic_schemas[target_topic], self._topic_schema_ids[target_topic]
+
+        schema_dict = self.load_schema(topic=target_topic)
+        subject = (
+            self.config.subject
+            if (target_topic == self.config.topic and self.config.subject)
+            else DEFAULT_TOPIC_SUBJECT_MAP.get(target_topic, f"{target_topic}-value")
+        )
+
+        schema_id: int | None = None
         try:
-            schema_str = json.dumps(self.schema_dict)
-            self.schema_id = self.schema_registry.register_schema(
+            schema_id = self.schema_registry.register_schema(
                 subject=subject,
-                schema=schema_str,
-                schema_type="AVRO",
+                schema_dict_or_str=schema_dict,
             )
             logger.info(
-                "Registered schema for subject '%s' with ID %d",
+                "Registered schema for subject '%s' (topic '%s') with ID %d",
                 subject,
-                self.schema_id,
-                extra={"subject": subject, "schema_id": self.schema_id},
+                target_topic,
+                schema_id,
+                extra={"subject": subject, "topic": target_topic, "schema_id": schema_id},
             )
         except Exception as exc:
             logger.warning(
-                "Could not register schema with Schema Registry (%s). Attempting local/fallback resolution: %s",
+                "Could not register schema with Schema Registry (%s) for topic '%s': %s",
                 self.config.schema_registry_url,
+                target_topic,
                 exc,
             )
-            # Default to dummy/mock schema_id if registry is unreachable in standalone/offline tests
-            if self.schema_id is None:
-                self.schema_id = 1
+            schema_id = self.schema_id if self.schema_id is not None and target_topic == self.config.topic else 1
+
+        self._topic_schemas[target_topic] = schema_dict
+        self._topic_schema_ids[target_topic] = schema_id
+        if target_topic == self.config.topic:
+            self.schema_dict = schema_dict
+            self.schema_id = schema_id
+
+        return schema_dict, schema_id
+
+    def setup(self) -> None:
+        """Prepare producer: load schema, resolve Schema Registry ID, and create Kafka producer."""
+        if not self.schema_dict or self.schema_id is None:
+            self.get_or_register_schema(self.config.topic)
 
         # Instantiate Kafka Producer if not injected
         if self.producer is None:
@@ -217,34 +260,37 @@ class BaseProducer(ABC):
                 return str(event[key])
         return None
 
-    def produce_one(self, event: dict[str, Any] | None = None) -> bool:
-        """Serialize and produce a single event to the configured Kafka topic.
+    def produce_one(self, event: dict[str, Any] | None = None, topic: str | None = None) -> bool:
+        """Serialize and produce a single event to Kafka.
 
         Args:
             event: Optional pre-generated event. If None, generate_event() is called.
+            topic: Target Kafka topic. If None, defaults to self.config.topic.
 
         Returns:
             True if message was queued for delivery, False otherwise.
         """
-        if self.producer is None or not self.schema_dict or self.schema_id is None:
+        if self.producer is None:
             self.setup()
 
         if event is None:
             event = self.generate_event()
 
+        target_topic = topic or self.config.topic
+        schema_dict, schema_id = self.get_or_register_schema(target_topic)
+
         assert self.producer is not None
-        assert self.schema_id is not None
 
         try:
             payload_bytes = self.serializer.serialize(
                 payload=event,
-                schema=self.schema_dict,
-                schema_id=self.schema_id,
+                schema=schema_dict,
+                schema_id=schema_id,
                 include_wire_header=True,
             )
         except SerializationError as exc:
             self.metrics.error_count += 1
-            logger.error("Failed to serialize event for topic %s: %s", self.config.topic, exc)
+            logger.error("Failed to serialize event for topic %s: %s", target_topic, exc)
             return False
 
         key = self.get_event_key(event)
@@ -252,7 +298,7 @@ class BaseProducer(ABC):
 
         try:
             self.producer.produce(
-                topic=self.config.topic,
+                topic=target_topic,
                 key=key_bytes,
                 value=payload_bytes,
                 on_delivery=self._delivery_callback,
@@ -262,13 +308,13 @@ class BaseProducer(ABC):
             return True
         except confluent_kafka.KafkaException as exc:
             self.metrics.error_count += 1
-            logger.error("Kafka produce error on topic %s: %s", self.config.topic, exc)
+            logger.error("Kafka produce error on topic %s: %s", target_topic, exc)
             return False
         except BufferError:
             logger.warning("Kafka local queue full; waiting for queue clearance.")
             self.producer.poll(1.0)
             self.producer.produce(
-                topic=self.config.topic,
+                topic=target_topic,
                 key=key_bytes,
                 value=payload_bytes,
                 on_delivery=self._delivery_callback,

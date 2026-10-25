@@ -105,7 +105,10 @@ class AvroSerializerDeserializer:
             if isinstance(val, Decimal):
                 return val
             elif isinstance(val, (float, int, str)):
-                return Decimal(str(val))
+                try:
+                    return Decimal(str(val))
+                except Exception:
+                    return val
         elif rec_schema and isinstance(val, dict):
             return self._preprocess_payload(val, rec_schema)
         elif arr_items and isinstance(val, list):
@@ -149,7 +152,10 @@ class AvroSerializerDeserializer:
             if isinstance(val, Decimal):
                 return val
             elif isinstance(val, (float, int, str)):
-                return Decimal(str(val))
+                try:
+                    return Decimal(str(val))
+                except Exception:
+                    return val
         elif rec_schema and isinstance(val, dict):
             return self._postprocess_payload(val, rec_schema, return_timestamps_as_datetime)
         elif arr_items and isinstance(val, list):

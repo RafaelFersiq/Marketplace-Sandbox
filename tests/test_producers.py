@@ -8,13 +8,18 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from ingestion.producers.antifraud_producer import AntiFraudProducer
 from ingestion.producers.base_producer import BaseProducer, ProducerMetrics
+from ingestion.producers.checkout_producer import CheckoutProducer
 from ingestion.producers.config import (
     ProducerConfig,
     build_producer_arg_parser,
     parse_producer_config,
 )
 from ingestion.producers.generator import SyntheticDataGenerator
+from ingestion.producers.inventory_producer import InventoryProducer
+from ingestion.producers.navigation_producer import NavigationProducer
+from ingestion.producers.payment_producer import PaymentProducer
 from ingestion.schema_registry import SchemaRegistryManager
 from ingestion.serialization import AvroSerializerDeserializer
 
@@ -221,3 +226,322 @@ class TestBaseProducer:
         producer.run()
         assert producer.metrics.produced_count == 5
         assert mock_kafka_producer.flush.called
+
+
+class TestDomainProducers:
+    """Test suite for domain-specific event producers."""
+
+    @pytest.fixture
+    def mock_kafka(self) -> MagicMock:
+        return MagicMock()
+
+    @pytest.fixture
+    def mock_sr(self) -> MagicMock:
+        sr = MagicMock(spec=SchemaRegistryManager)
+        sr.register_schema.return_value = 101
+        return sr
+
+    def test_checkout_producer_modes_and_routing(self, mock_kafka: MagicMock, mock_sr: MagicMock) -> None:
+        producer = CheckoutProducer(
+            mode="blended",
+            producer=mock_kafka,
+            schema_registry_manager=mock_sr,
+        )
+        producer.setup()
+
+        # Order creation
+        order_success = producer.produce_order()
+        assert order_success is True
+
+        # Cart event
+        cart_success = producer.produce_cart()
+        assert cart_success is True
+
+        # Auto-routing based on payload
+        cart_event = producer.generate_cart_event()
+        producer.produce_one(cart_event)
+        last_topic = mock_kafka.produce.call_args.kwargs["topic"]
+        assert last_topic == CheckoutProducer.CART_TOPIC
+
+    def test_payment_producer_lifecycle(self, mock_kafka: MagicMock, mock_sr: MagicMock) -> None:
+        producer = PaymentProducer(producer=mock_kafka, schema_registry_manager=mock_sr)
+        producer.setup()
+
+        lifecycle_events = producer.simulate_payment_lifecycle(
+            order_id="00000000-0000-0000-0000-000000000001",
+            customer_id="00000000-0000-0000-0000-000000000002",
+            amount=Decimal("150.0000"),
+        )
+        assert len(lifecycle_events) == 2
+        assert lifecycle_events[0]["payment_status"] == "AUTHORIZED"
+        assert lifecycle_events[1]["payment_status"] in ("APPROVED", "DECLINED", "FAILED")
+        assert lifecycle_events[0]["payment_id"] == lifecycle_events[1]["payment_id"]
+
+        results = producer.produce_payment_lifecycle(
+            order_id="00000000-0000-0000-0000-000000000001",
+            customer_id="00000000-0000-0000-0000-000000000002",
+            amount=Decimal("150.0000"),
+        )
+        assert all(results)
+
+    def test_navigation_producer_journey(self, mock_kafka: MagicMock, mock_sr: MagicMock) -> None:
+        producer = NavigationProducer(producer=mock_kafka, schema_registry_manager=mock_sr)
+        producer.setup()
+
+        journey = producer.simulate_user_journey()
+        assert len(journey) == 4
+        assert [e["event_type"] for e in journey] == ["PAGE_VIEW", "SEARCH_QUERY", "CATEGORY_BROWSE", "PRODUCT_CLICK"]
+        assert all(e["session_id"] == journey[0]["session_id"] for e in journey)
+
+        results = producer.produce_user_journey()
+        assert all(results)
+
+    def test_inventory_producer_modes_and_routing(self, mock_kafka: MagicMock, mock_sr: MagicMock) -> None:
+        producer = InventoryProducer(
+            mode="blended",
+            producer=mock_kafka,
+            schema_registry_manager=mock_sr,
+        )
+        producer.setup()
+
+        stock_success = producer.produce_stock_update()
+        assert stock_success is True
+
+        catalog_success = producer.produce_catalog_change()
+        assert catalog_success is True
+
+        # Auto-routing based on payload
+        cat_event = producer.generate_catalog_event()
+        producer.produce_one(cat_event)
+        last_topic = mock_kafka.produce.call_args.kwargs["topic"]
+        assert last_topic == InventoryProducer.CATALOG_TOPIC
+
+
+class TestAntiFraudProducer:
+    """Test suite for AntiFraudProducer, anomaly generation, Avro validation, and Kafka production."""
+
+    @pytest.fixture
+    def serializer(self) -> AvroSerializerDeserializer:
+        return AvroSerializerDeserializer()
+
+    @pytest.fixture
+    def generator(self) -> SyntheticDataGenerator:
+        return SyntheticDataGenerator(seed=42)
+
+    @pytest.fixture
+    def order_schema(self) -> dict[str, Any]:
+        schema_path = Path(__file__).resolve().parent.parent / "ingestion" / "schemas" / "avro" / "order_creation.avsc"
+        with schema_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    @pytest.fixture
+    def payment_schema(self) -> dict[str, Any]:
+        schema_path = Path(__file__).resolve().parent.parent / "ingestion" / "schemas" / "avro" / "payment_updates.avsc"
+        with schema_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    @pytest.fixture
+    def mock_kafka(self) -> MagicMock:
+        return MagicMock()
+
+    @pytest.fixture
+    def mock_sr(self) -> MagicMock:
+        sr = MagicMock(spec=SchemaRegistryManager)
+        sr.register_schema.return_value = 201
+        return sr
+
+    def test_init_invalid_pattern_raises(self) -> None:
+        with pytest.raises(ValueError, match="Invalid pattern 'fraud_bot'"):
+            AntiFraudProducer(pattern="fraud_bot")
+
+    def test_generate_high_value_order_schema_and_range(
+        self,
+        generator: SyntheticDataGenerator,
+        serializer: AvroSerializerDeserializer,
+        order_schema: dict[str, Any],
+    ) -> None:
+        producer = AntiFraudProducer(generator=generator)
+        order = producer.generate_high_value_order(multiplier=10.0)
+
+        assert order["event_type"] == "ORDER_CREATED"
+        assert isinstance(order["total_amount"], Decimal)
+        assert isinstance(order["subtotal_amount"], Decimal)
+        # Verify unusual high value threshold: Decimal("45000.0000") to Decimal("99000.0000")
+        assert order["total_amount"] >= Decimal("45000.0000")
+        assert order["total_amount"] <= Decimal("99000.0000")
+
+        # Verify math integrity
+        subtotal_sum = sum(item["subtotal"] for item in order["items"])
+        assert order["subtotal_amount"] == subtotal_sum
+        assert order["total_amount"] == subtotal_sum + order["shipping_fee"] - order["discount_amount"]
+
+        # Validate against Avro schema
+        assert serializer.validate(order, order_schema) is True
+
+    def test_generate_high_value_order_invalid_multiplier(self) -> None:
+        producer = AntiFraudProducer()
+        with pytest.raises(ValueError, match="Multiplier must be positive"):
+            producer.generate_high_value_order(multiplier=0.0)
+        with pytest.raises(ValueError, match="Multiplier must be positive"):
+            producer.generate_high_value_order(multiplier=-5.0)
+
+    def test_generate_velocity_burst(
+        self,
+        generator: SyntheticDataGenerator,
+        serializer: AvroSerializerDeserializer,
+        order_schema: dict[str, Any],
+    ) -> None:
+        producer = AntiFraudProducer(generator=generator)
+        burst_count = 5
+        orders = producer.generate_velocity_burst(count=burst_count)
+
+        assert len(orders) == burst_count
+        first_cust = orders[0]["customer_id"]
+        assert all(o["customer_id"] == first_cust for o in orders)
+
+        # Unique order and event IDs
+        order_ids = {o["order_id"] for o in orders}
+        assert len(order_ids) == burst_count
+        event_ids = {o["event_id"] for o in orders}
+        assert len(event_ids) == burst_count
+
+        # Timestamps should be ordered and closely spaced (within a few seconds)
+        for i in range(len(orders) - 1):
+            assert orders[i]["timestamp"] <= orders[i + 1]["timestamp"]
+        total_time_diff = (orders[-1]["timestamp"] - orders[0]["timestamp"]).total_seconds()
+        assert total_time_diff < 5.0
+
+        # Validate each order against schema
+        for order in orders:
+            assert serializer.validate(order, order_schema) is True
+
+    def test_generate_velocity_burst_custom_customer_and_validation(self) -> None:
+        producer = AntiFraudProducer()
+        custom_cust = "00000000-1111-2222-3333-444444444444"
+        orders = producer.generate_velocity_burst(customer_id=custom_cust, count=3)
+        assert len(orders) == 3
+        assert all(o["customer_id"] == custom_cust for o in orders)
+
+        with pytest.raises(ValueError, match="Count must be at least 1"):
+            producer.generate_velocity_burst(count=0)
+
+    def test_generate_geo_anomaly(
+        self,
+        generator: SyntheticDataGenerator,
+        serializer: AvroSerializerDeserializer,
+        order_schema: dict[str, Any],
+    ) -> None:
+        producer = AntiFraudProducer(generator=generator)
+        orders = producer.generate_geo_anomaly()
+
+        assert len(orders) == 2
+        # Same customer placed both orders
+        assert orders[0]["customer_id"] == orders[1]["customer_id"]
+        # Different orders
+        assert orders[0]["order_id"] != orders[1]["order_id"]
+
+        # Different states (São Paulo vs Amazonas)
+        assert orders[0]["shipping_address"]["state"] == "SP"
+        assert orders[1]["shipping_address"]["state"] == "AM"
+
+        # Impossible rapid travel interval (<= 5 seconds)
+        delta_sec = (orders[1]["timestamp"] - orders[0]["timestamp"]).total_seconds()
+        assert 0.0 < delta_sec <= 5.0
+
+        # Validate both against schema
+        assert serializer.validate(orders[0], order_schema) is True
+        assert serializer.validate(orders[1], order_schema) is True
+
+    def test_generate_card_testing_pattern(
+        self,
+        generator: SyntheticDataGenerator,
+        serializer: AvroSerializerDeserializer,
+        payment_schema: dict[str, Any],
+    ) -> None:
+        producer = AntiFraudProducer(generator=generator)
+        attempts = 4
+        payment_events = producer.generate_card_testing_pattern(attempts=attempts)
+
+        assert len(payment_events) == attempts
+        target_order_id = payment_events[0]["order_id"]
+        target_customer_id = payment_events[0]["customer_id"]
+
+        # All events belong to the same checkout order and customer
+        assert all(p["order_id"] == target_order_id for p in payment_events)
+        assert all(p["customer_id"] == target_customer_id for p in payment_events)
+
+        # Unique payment transactions
+        payment_ids = {p["payment_id"] for p in payment_events}
+        assert len(payment_ids) == attempts
+        txn_refs = {p["transaction_reference"] for p in payment_events}
+        assert len(txn_refs) == attempts
+
+        # All attempts must be terminal declines or gateway failures
+        for p in payment_events:
+            assert p["event_type"] == "PAYMENT_STATUS_UPDATED"
+            assert p["payment_status"] in ("DECLINED", "FAILED")
+            assert p["failure_reason"] is not None
+            assert serializer.validate(p, payment_schema) is True
+
+    def test_generate_card_testing_invalid_attempts(self) -> None:
+        producer = AntiFraudProducer()
+        with pytest.raises(ValueError, match="Attempts must be at least 1"):
+            producer.generate_card_testing_pattern(attempts=0)
+
+    def test_generate_event_conforms_to_order_schema(
+        self,
+        serializer: AvroSerializerDeserializer,
+        order_schema: dict[str, Any],
+    ) -> None:
+        for pat in ["high_value", "velocity", "geo"]:
+            producer = AntiFraudProducer(pattern=pat)
+            event = producer.generate_event()
+            assert event["event_type"] == "ORDER_CREATED"
+            assert serializer.validate(event, order_schema) is True
+
+    def test_produce_anomaly_dispatch(
+        self,
+        mock_kafka: MagicMock,
+        mock_sr: MagicMock,
+    ) -> None:
+        producer = AntiFraudProducer(producer=mock_kafka, schema_registry_manager=mock_sr)
+        producer.setup()
+
+        # High value produces single order
+        hv_result = producer.produce_anomaly("high_value")
+        assert hv_result is True
+        assert mock_kafka.produce.called
+        assert mock_kafka.produce.call_args.kwargs["topic"] == AntiFraudProducer.ORDERS_TOPIC
+
+        # Velocity burst produces multiple orders
+        mock_kafka.produce.reset_mock()
+        vel_results = producer.produce_anomaly("velocity")
+        assert isinstance(vel_results, list)
+        assert len(vel_results) == 5
+        assert all(vel_results)
+        assert mock_kafka.produce.call_count == 5
+        assert mock_kafka.produce.call_args.kwargs["topic"] == AntiFraudProducer.ORDERS_TOPIC
+
+        # Geo anomaly produces 2 orders
+        mock_kafka.produce.reset_mock()
+        geo_results = producer.produce_anomaly("geo")
+        assert isinstance(geo_results, list)
+        assert len(geo_results) == 2
+        assert all(geo_results)
+        assert mock_kafka.produce.call_count == 2
+        assert mock_kafka.produce.call_args.kwargs["topic"] == AntiFraudProducer.ORDERS_TOPIC
+
+        # Card testing produces payment events to marketplace.payments
+        mock_kafka.produce.reset_mock()
+        card_results = producer.produce_anomaly("card_testing")
+        assert isinstance(card_results, list)
+        assert len(card_results) == 3
+        assert all(card_results)
+        assert mock_kafka.produce.call_count == 3
+        assert mock_kafka.produce.call_args.kwargs["topic"] == AntiFraudProducer.PAYMENTS_TOPIC
+
+        # Invalid pattern raises
+        with pytest.raises(ValueError, match="Invalid pattern 'unknown_pattern'"):
+            producer.produce_anomaly("unknown_pattern")
+
+

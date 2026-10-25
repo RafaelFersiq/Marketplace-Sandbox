@@ -49,6 +49,7 @@ docs/learning/
 
 ### Step 3 — Construção de Produtores de Eventos
 * [Sessão 08: Framework Base de Produtores Kafka e Motor de Geração Sintética de Eventos](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md) *(29/07/2026)*
+* [Sessão 09: Produtores de Domínio, Injeção de Caos e Simulação de Streaming em Tempo Real](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md) *(30/07/2026)*
 
 ---
 
