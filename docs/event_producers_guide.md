@@ -338,9 +338,9 @@ The enumeration [`SchemaViolationType`](file:///home/rafael-siqueira/estudos/pro
 
 ```python
 class SchemaViolationType(StrEnum):
-    MISSING_REQUIRED = "missing_required"        # Deletes mandatory fields (order_id, event_id)
-    INVALID_TYPE = "invalid_type"                # Sets numeric decimal fields to invalid string
-    NEGATIVE_AMOUNT = "negative_amount"          # Sets total_amount or quantity to negative numbers
+    MISSING_REQUIRED = "missing_required"  # Deletes mandatory fields (order_id, event_id)
+    INVALID_TYPE = "invalid_type"  # Sets numeric decimal fields to invalid string
+    NEGATIVE_AMOUNT = "negative_amount"  # Sets total_amount or quantity to negative numbers
     CORRUPTED_STRUCTURE = "corrupted_structure"  # Deletes nested records (shipping_address, items)
 ```
 

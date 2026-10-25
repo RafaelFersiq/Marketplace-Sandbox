@@ -267,10 +267,7 @@ def run(self) -> None:
             if self.config.max_events is not None and self.metrics.produced_count >= self.config.max_events:
                 break
 
-            if (
-                self.config.runtime_seconds is not None
-                and self.metrics.elapsed_seconds >= self.config.runtime_seconds
-            ):
+            if self.config.runtime_seconds is not None and self.metrics.elapsed_seconds >= self.config.runtime_seconds:
                 break
 
             self.produce_one()
@@ -306,26 +303,30 @@ def generate_order_creation(self) -> dict[str, Any]:
         unit_price = prod["price"]
         item_subtotal = (unit_price * Decimal(qty)).quantize(Decimal("0.0001"))
         subtotal_sum += item_subtotal
-        items.append({
-            "item_id": str(uuid.uuid4()),
-            "product_id": prod["product_id"],
-            "product_name": prod["product_name"],
-            "quantity": qty,
-            "unit_price": unit_price,
-            "subtotal": item_subtotal,
-        })
+        items.append(
+            {
+                "item_id": str(uuid.uuid4()),
+                "product_id": prod["product_id"],
+                "product_name": prod["product_name"],
+                "quantity": qty,
+                "unit_price": unit_price,
+                "subtotal": item_subtotal,
+            }
+        )
 
     discount = Decimal(str(random.choice([0.0, 10.0, 25.0, 50.0]))).quantize(Decimal("0.0001"))
     shipping = Decimal(str(random.choice([0.0, 15.90, 24.50, 39.90]))).quantize(Decimal("0.0001"))
     total = (subtotal_sum + shipping - discount).quantize(Decimal("0.0001"))
 
     # Salva na lista circular de pedidos para correlação com pagamentos
-    self._active_orders.append({
-        "order_id": order_id,
-        "customer_id": customer["customer_id"],
-        "total_amount": total,
-        "payment_method": payment_method,
-    })
+    self._active_orders.append(
+        {
+            "order_id": order_id,
+            "customer_id": customer["customer_id"],
+            "total_amount": total,
+            "payment_method": payment_method,
+        }
+    )
     return order_payload
 ```
 

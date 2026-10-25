@@ -257,9 +257,7 @@ class ChaosEngine:
                 v_type = SchemaViolationType(str(violation_type).lower())
             except ValueError as exc:
                 supported = [t.value for t in SchemaViolationType]
-                raise ValueError(
-                    f"Unsupported violation_type '{violation_type}'. Must be one of {supported}"
-                ) from exc
+                raise ValueError(f"Unsupported violation_type '{violation_type}'. Must be one of {supported}") from exc
 
         corrupted = copy.deepcopy(event)
 

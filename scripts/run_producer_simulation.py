@@ -122,9 +122,7 @@ def normalize_producer_names(producer_args: list[str]) -> list[str]:
 
     for name in resolved:
         if name not in VALID_PRODUCER_NAMES:
-            raise ValueError(
-                f"Unknown producer '{name}'. Valid options: {list(VALID_PRODUCER_NAMES)} or 'all'"
-            )
+            raise ValueError(f"Unknown producer '{name}'. Valid options: {list(VALID_PRODUCER_NAMES)} or 'all'")
 
     return list(dict.fromkeys(resolved))
 

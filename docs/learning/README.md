@@ -32,7 +32,7 @@ docs/learning/
 │   ├── 2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md
 │   └── 2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md
 └── step-04-streaming-ingestion-pipeline/
-    └── (em planejamento / execução)
+    └── 2026-10-24-session-10-pyspark-streaming-ingestion-and-dlq.md
 ```
 
 ---
@@ -55,7 +55,7 @@ docs/learning/
 * [Sessão 09: Produtores de Domínio, Injeção de Caos e Simulação de Streaming em Tempo Real](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md) *(30/07/2026)*
 
 ### Step 4 — Pipeline de Ingestão em Streaming
-* *(Em planejamento e execução; sessões serão geradas pelo educational-agent conforme as fases forem concluídas)*
+* [Sessão 10: Pipeline de Ingestão em Streaming com PySpark, Wire Format Confluent, Watermarking e Dead Letter Queue](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-04-streaming-ingestion-pipeline/2026-10-24-session-10-pyspark-streaming-ingestion-and-dlq.md) *(24/10/2026)*
 
 ---
 

@@ -148,11 +148,7 @@ class InventoryProducer(BaseProducer):
             event = self.generate_event()
 
         event_type = event.get("event_type", "")
-        if (
-            event_type.startswith("PRODUCT_")
-            or event_type == "PRICE_CHANGED"
-            or "sku" in event
-        ):
+        if event_type.startswith("PRODUCT_") or event_type == "PRICE_CHANGED" or "sku" in event:
             target_topic = self.CATALOG_TOPIC
         else:
             target_topic = self.INVENTORY_TOPIC

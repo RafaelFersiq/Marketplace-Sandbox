@@ -162,9 +162,7 @@ def consume_matching_event(
 class TestLiveProducersIntegration:
     """Live streaming verification against running Kafka and Schema Registry containers."""
 
-    def test_live_checkout_producer_orders_and_cart(
-        self, live_services_check: dict[str, str]
-    ) -> None:
+    def test_live_checkout_producer_orders_and_cart(self, live_services_check: dict[str, str]) -> None:
         """Test producing live OrderCreationEvent and CartEvent, consuming and validating them."""
         bootstrap_servers = live_services_check["bootstrap_servers"]
         sr_url = live_services_check["schema_registry_url"]
@@ -321,9 +319,7 @@ class TestLiveProducersIntegration:
 
         producer.close()
 
-    def test_live_inventory_producer_stock_and_catalog(
-        self, live_services_check: dict[str, str]
-    ) -> None:
+    def test_live_inventory_producer_stock_and_catalog(self, live_services_check: dict[str, str]) -> None:
         """Test producing live StockUpdateEvent and CatalogChangeEvent, consuming and deserializing them."""
         bootstrap_servers = live_services_check["bootstrap_servers"]
         sr_url = live_services_check["schema_registry_url"]
@@ -477,25 +473,27 @@ class TestSimulationCliParsing:
 
     def test_custom_cli_arguments(self) -> None:
         parser = build_simulation_arg_parser()
-        args = parser.parse_args([
-            "--producers",
-            "checkout,payment",
-            "--rate",
-            "12.5",
-            "--runtime-seconds",
-            "30.0",
-            "--max-events",
-            "100",
-            "--enable-chaos",
-            "--chaos-duplicate-rate",
-            "0.15",
-            "--chaos-delay-rate",
-            "0.10",
-            "--chaos-invalid-rate",
-            "0.05",
-            "--chaos-burst-prob",
-            "0.20",
-        ])
+        args = parser.parse_args(
+            [
+                "--producers",
+                "checkout,payment",
+                "--rate",
+                "12.5",
+                "--runtime-seconds",
+                "30.0",
+                "--max-events",
+                "100",
+                "--enable-chaos",
+                "--chaos-duplicate-rate",
+                "0.15",
+                "--chaos-delay-rate",
+                "0.10",
+                "--chaos-invalid-rate",
+                "0.05",
+                "--chaos-burst-prob",
+                "0.20",
+            ]
+        )
 
         assert args.producers == ["checkout,payment"]
         assert args.rate == 12.5

@@ -13,6 +13,7 @@ dependencies = [
     "faker>=33.0.0",
     "fastavro>=1.12.0",
     "httpx>=0.28.0",
+    "pyspark>=3.5.1",
     "python-dotenv>=1.0.0",
     "requests>=2.32.0",
 ]

@@ -39,13 +39,7 @@ def serializer() -> AvroSerializerDeserializer:
 @pytest.fixture
 def order_schema() -> dict[str, Any]:
     """Fixture loading order_creation.avsc schema."""
-    schema_path = (
-        Path(__file__).resolve().parent.parent
-        / "ingestion"
-        / "schemas"
-        / "avro"
-        / "order_creation.avsc"
-    )
+    schema_path = Path(__file__).resolve().parent.parent / "ingestion" / "schemas" / "avro" / "order_creation.avsc"
     with schema_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -467,6 +461,7 @@ class TestSimulateRetryConnection:
     def test_retry_transient_failure_then_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_sleep = MagicMock()
         import time
+
         monkeypatch.setattr(time, "sleep", mock_sleep)
 
         mock_fn = MagicMock(
@@ -487,6 +482,7 @@ class TestSimulateRetryConnection:
     def test_retry_exhausted_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_sleep = MagicMock()
         import time
+
         monkeypatch.setattr(time, "sleep", mock_sleep)
 
         mock_fn = MagicMock(side_effect=confluent_kafka.KafkaException("Fatal broker connection down"))
@@ -508,6 +504,7 @@ class TestSimulateRetryConnection:
     def test_retry_buffer_error_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_sleep = MagicMock()
         import time
+
         monkeypatch.setattr(time, "sleep", mock_sleep)
 
         mock_fn = MagicMock(side_effect=[BufferError("Kafka buffer full"), "RECOVERED"])
@@ -520,6 +517,7 @@ class TestSimulateRetryConnection:
     def test_retry_custom_retryable_exceptions(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_sleep = MagicMock()
         import time
+
         monkeypatch.setattr(time, "sleep", mock_sleep)
 
         mock_fn = MagicMock(side_effect=[KeyError("Custom transient key error"), "DONE"])
@@ -535,6 +533,7 @@ class TestSimulateRetryConnection:
     def test_retry_on_false_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_sleep = MagicMock()
         import time
+
         monkeypatch.setattr(time, "sleep", mock_sleep)
 
         mock_fn = MagicMock(side_effect=[False, False, True])
@@ -543,8 +542,6 @@ class TestSimulateRetryConnection:
         assert mock_fn.call_count == 3
 
         mock_failed_fn = MagicMock(return_value=False)
-        exhausted_result = ChaosEngine.simulate_retry_connection(
-            mock_failed_fn, max_retries=2, retry_on_false=True
-        )
+        exhausted_result = ChaosEngine.simulate_retry_connection(mock_failed_fn, max_retries=2, retry_on_false=True)
         assert exhausted_result is False
         assert mock_failed_fn.call_count == 3

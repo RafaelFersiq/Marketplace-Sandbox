@@ -128,7 +128,9 @@ class NavigationProducer(BaseProducer):
             },
             {
                 "event_type": "CATEGORY_BROWSE",
-                "page_url": f"https://marketplace.com/categories/{category['category_id']}" if category else "https://marketplace.com/categories",
+                "page_url": f"https://marketplace.com/categories/{category['category_id']}"
+                if category
+                else "https://marketplace.com/categories",
                 "referrer_url": f"https://marketplace.com/search?q={search_term.replace(' ', '+')}",
                 "product_id": None,
                 "category_id": category["category_id"] if category else None,
@@ -137,8 +139,12 @@ class NavigationProducer(BaseProducer):
             },
             {
                 "event_type": "PRODUCT_CLICK",
-                "page_url": f"https://marketplace.com/products/{product['product_id']}" if product else "https://marketplace.com/products",
-                "referrer_url": f"https://marketplace.com/categories/{category['category_id']}" if category else "https://marketplace.com/categories",
+                "page_url": f"https://marketplace.com/products/{product['product_id']}"
+                if product
+                else "https://marketplace.com/products",
+                "referrer_url": f"https://marketplace.com/categories/{category['category_id']}"
+                if category
+                else "https://marketplace.com/categories",
                 "product_id": product["product_id"] if product else None,
                 "category_id": None,
                 "search_term": None,

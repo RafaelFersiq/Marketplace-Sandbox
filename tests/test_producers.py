@@ -543,5 +543,3 @@ class TestAntiFraudProducer:
         # Invalid pattern raises
         with pytest.raises(ValueError, match="Invalid pattern 'unknown_pattern'"):
             producer.produce_anomaly("unknown_pattern")
-
-
