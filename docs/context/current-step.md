@@ -1,41 +1,41 @@
-# Current Step: Step 3 — Building Event Producers
+# Current Step: Step 4 — Streaming Ingestion Pipeline
 
 ## Active Tasks
 
-### Phase 1: Ingestion Infrastructure & Base Producer Framework
-- [x] Implement the abstract base producer class `BaseProducer` in [ingestion/producers/base_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/base_producer.py) providing Kafka client configuration, Confluent Schema Registry wire-format serialization via [ingestion/serialization.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/serialization.py), rate limiting, delivery callbacks, and thread-safe execution
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Build the synthetic data generation engine in [ingestion/producers/generator.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/generator.py) using `Faker` and custom generators to generate domain entity data, handling updated Avro logical types (`timestamp-millis` long integers and `decimal(18,4)` Decimal objects)
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Build producer configuration and CLI entry point utilities in [ingestion/producers/config.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/config.py) to manage Kafka broker parameters, Schema Registry settings, topic mappings, target event throughput rate, and execution runtime
-    * **Assigned Agent**: `software-engineer-agent`
-
-### Phase 2: Domain Producers Implementation
-- [x] Implement `CheckoutProducer` in [ingestion/producers/checkout_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/checkout_producer.py) for publishing `order_creation` events to `marketplace.orders` and `cart_events` to `marketplace.cart` with valid entity identifiers and monetary fields
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Implement `PaymentProducer` in [ingestion/producers/payment_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/payment_producer.py) for publishing `payment_updates` events to `marketplace.payments` with realistic payment gateway status transitions (`AUTHORIZED`, `APPROVED`, `DECLINED`, `REFUNDED`, `FAILED`)
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Implement `NavigationProducer` in [ingestion/producers/navigation_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/navigation_producer.py) emitting high-volume clickstream events (`user_navigation`) to `marketplace.navigation` simulating user sessions, search queries, and page interactions
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Implement `InventoryProducer` in [ingestion/producers/inventory_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/inventory_producer.py) emitting `stock_updates` to `marketplace.inventory` and `catalog_changes` to `marketplace.catalog` covering stock reservations, replenishment, and product updates
-    * **Assigned Agent**: `data-engineer-agent`
-- [x] Implement `AntiFraudProducer` in [ingestion/producers/antifraud_producer.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/antifraud_producer.py) emitting security telemetry and generating suspicious activity patterns (rapid checkout frequency, geographical anomalies, unusual high-value orders)
-    * **Assigned Agent**: `software-engineer-agent`
-
-### Phase 3: Chaos & Resilience Simulation Scenarios
-- [x] Implement `ChaosEngine` in [ingestion/producers/chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/chaos.py) to simulate traffic bursts, variable volume, and delayed or out-of-order events with altered `timestamp-millis` values
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Extend `ChaosEngine` in [ingestion/producers/chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/ingestion/producers/chaos.py) to inject duplicate event payloads, schema-invalid payloads for Dead Letter Queue testing, and simulate intermittent Kafka connection failures with retry handling
-    * **Assigned Agent**: `software-engineer-agent`
-
-### Phase 4: Integration Testing & Verification
-- [x] Create unit and component pytest test suites in [tests/test_producers.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_producers.py) and [tests/test_chaos.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_chaos.py) testing event generation, serialization, rate limiting, and chaos scenario generators
-    * **Assigned Agent**: `software-engineer-agent`
-- [x] Create CLI simulation script [scripts/run_producer_simulation.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/scripts/run_producer_simulation.py) and end-to-end integration test in [tests/test_live_producers.py](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/tests/test_live_producers.py) executing real-time streaming against local Kafka broker and Schema Registry
-    * **Assigned Agent**: `data-engineer-agent`
-
-### Phase 5: Documentation
-- [x] Write comprehensive technical documentation for event producers, architecture, CLI parameters, and chaos simulation scenarios in [docs/event_producers_guide.md](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/event_producers_guide.md)
+### Phase 1: Architectural Design & Infrastructure Readiness
+- [ ] Write Architecture Decision Record ADR-0007 in [docs/adr/0007-streaming-ingestion-pipeline-architecture.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0007-streaming-ingestion-pipeline-architecture.md) documenting PySpark Structured Streaming design, Confluent Avro wire-format deserialization strategy, Schema Registry integration, Dead Letter Queue (DLQ) pattern, watermarking policy, and checkpoint-based fault tolerance
     * **Assigned Agent**: `tech-writer-agent`
-- [x] Create session log and architecture decision updates under [docs/learning/step-03-building-event-producers/](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/) documenting producer design trade-offs and simulation findings
+- [ ] Update [pyproject.toml](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/pyproject.toml) to include `pyspark>=3.5.1` and verify/configure Spark container environment in [infrastructure/docker-compose.yml](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/infrastructure/docker-compose.yml) with required Spark packages (`spark-sql-kafka-0-10_2.12:3.5.1`, `spark-avro_2.12:3.5.1`, `hadoop-aws:3.3.4`, `aws-java-sdk-bundle:1.12.262`) and automated MinIO bucket initialization (`lakehouse-bronze`, `lakehouse-dlq`)
+    * **Assigned Agent**: `devops-infra-agent`
+
+### Phase 2: Core Streaming Framework & Wire-Format Deserialization
+- [ ] Implement streaming configuration dataclass `SparkStreamingConfig` in [processing/streaming/config.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/config.py) managing Kafka broker parameters, Schema Registry settings, topic subscriptions, trigger intervals, watermark threshold, landing paths, and checkpoint directories
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Implement Confluent Avro wire-format deserializer and schema validation logic in [processing/streaming/deserializer.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/deserializer.py) extracting the 5-byte header (magic byte 0x00 + 4-byte schema ID), retrieving schemas from Schema Registry with in-memory caching, decoding Avro binary payloads into PySpark DataFrame schemas, and safely tagging corrupt/malformed payloads without failing the stream
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement Dead Letter Queue (DLQ) routing and error isolation in [processing/streaming/dlq.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/dlq.py) filtering invalid/malformed records, enriching them with diagnostic metadata (`_error_type`, `_error_message`, `_raw_payload_base64`, `_kafka_topic`, `_kafka_partition`, `_kafka_offset`, `_failed_at`), and routing to Kafka DLQ topic `marketplace.dlq` and/or MinIO DLQ storage
+    * **Assigned Agent**: `data-engineer-agent`
+
+### Phase 3: Watermarking, Fault Tolerance & Streaming Pipeline Orchestration
+- [ ] Implement event-time watermarking and stateful deduplication in [processing/streaming/watermark.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/watermark.py) parsing Avro `timestamp-millis` logical timestamps, configuring Spark Structured Streaming watermarks (e.g., 10-minute delay) to handle late-arriving events, and applying deduplication on `event_id`
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `StreamingIngestionPipeline` orchestrator in [processing/streaming/pipeline.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/pipeline.py) unifying multi-topic Kafka consumption (`marketplace.orders`, `marketplace.payments`, `marketplace.cart`, `marketplace.inventory`, `marketplace.catalog`, `marketplace.navigation`), wire-format deserialization, watermark handling, DLQ bifurcated routing, and fault-tolerant landing persistence to MinIO (`s3a://lakehouse-bronze/landing/`) using checkpointing
+    * **Assigned Agent**: `data-engineer-agent`
+- [ ] Implement `StreamingMetricsListener` in [processing/streaming/metrics.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/metrics.py) using Spark's `StreamingQueryListener` to capture streaming query progress metrics (input rate, processing rate, batch duration, watermark, trigger execution times) with structured JSON logging and Prometheus metric counters
+    * **Assigned Agent**: `observability-agent`
+- [ ] Implement resilient execution and automatic recovery loop in [processing/streaming/recovery.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/streaming/recovery.py) providing exponential backoff restart on transient network/broker interruptions and graceful SIGINT/SIGTERM termination ensuring clean checkpoint commits
+    * **Assigned Agent**: `software-engineer-agent`
+
+### Phase 4: CLI Execution & Test Suites
+- [ ] Implement CLI streaming runner in [scripts/run_streaming_ingestion.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/scripts/run_streaming_ingestion.py) supporting configurable CLI arguments (`--topics`, `--bootstrap-servers`, `--schema-registry-url`, `--landing-path`, `--checkpoint-dir`, `--watermark-delay`, `--trigger-interval`, `--once`, `--continuous`), pre-flight connectivity checks, and structured JSON audit logging
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Create unit test suites in [tests/test_streaming_config.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/tests/test_streaming_config.py), [tests/test_streaming_deserializer.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/tests/test_streaming_deserializer.py), and [tests/test_streaming_dlq.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/tests/test_streaming_dlq.py) testing config parsing, wire-format deserialization, schema cache handling, error tagging, and DLQ payload formatting
+    * **Assigned Agent**: `software-engineer-agent`
+- [ ] Create end-to-end integration test suite in [tests/test_streaming_pipeline.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/tests/test_streaming_pipeline.py) validating the complete streaming ingestion flow against live Kafka, Schema Registry, and MinIO: producing valid and chaos events, verifying continuous consumption, checking landing persistence, confirming DLQ isolation of malformed events, and testing checkpoint recovery
+    * **Assigned Agent**: `data-engineer-agent`
+
+### Phase 5: Technical Documentation & Educational Guide
+- [ ] Write comprehensive technical operations guide in [docs/streaming_ingestion_guide.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/streaming_ingestion_guide.md) documenting streaming ingestion architecture, Confluent wire format handling in Spark, watermarking strategy, DLQ pattern, checkpoint recovery, CLI options, and operational runbooks
     * **Assigned Agent**: `tech-writer-agent`
+- [ ] Create educational session journal in [docs/learning/step-04-streaming-ingestion-pipeline/](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-04-streaming-ingestion-pipeline/) and update [docs/learning/README.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/README.md) synthesizing key streaming engineering concepts (at-least-once semantics, stateful streaming, Confluent wire format, watermarking, DLQ)
+    * **Assigned Agent**: `educational-agent`

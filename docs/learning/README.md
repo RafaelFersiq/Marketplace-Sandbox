@@ -28,8 +28,11 @@ docs/learning/
 │   ├── 2026-07-26-session-05-business-events-specification.md
 │   ├── 2026-07-28-session-06-avro-schemas-data-contracts-and-schema-registry.md
 │   └── 2026-07-28-session-07-avro-logical-types-cache-and-backward-compatibility.md
-└── step-03-building-event-producers/
-    └── 2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md
+├── step-03-building-event-producers/
+│   ├── 2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md
+│   └── 2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md
+└── step-04-streaming-ingestion-pipeline/
+    └── (em planejamento / execução)
 ```
 
 ---
@@ -50,6 +53,9 @@ docs/learning/
 ### Step 3 — Construção de Produtores de Eventos
 * [Sessão 08: Framework Base de Produtores Kafka e Motor de Geração Sintética de Eventos](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md) *(29/07/2026)*
 * [Sessão 09: Produtores de Domínio, Injeção de Caos e Simulação de Streaming em Tempo Real](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-03-building-event-producers/2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md) *(30/07/2026)*
+
+### Step 4 — Pipeline de Ingestão em Streaming
+* *(Em planejamento e execução; sessões serão geradas pelo educational-agent conforme as fases forem concluídas)*
 
 ---
 
