@@ -1,12 +1,33 @@
-# Current Session: Step 4 Execution — Phases 4 & 5
-
-## Step Status
-* **Phase 1 (Complete)**: ADR-0007 and Spark/MinIO Docker Compose & pyproject configuration completed.
-* **Phase 2 (Complete)**: `config.py`, `deserializer.py`, and `dlq.py` implemented.
-* **Phase 3 (Complete)**: `watermark.py`, `pipeline.py`, `metrics.py`, and `recovery.py` implemented.
+# Current Session Context
 
 ## Immediate Focus
-* **Phase 4 & 5 (Active)**:
-  - `software-engineer-agent`: Implement CLI runner [scripts/run_streaming_ingestion.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/scripts/run_streaming_ingestion.py) (unit tests `test_streaming_config.py`, `test_streaming_deserializer.py`, `test_streaming_dlq.py`, `test_streaming_recovery.py`, and `test_streaming_metrics.py` already written).
-  - `data-engineer-agent`: Implement end-to-end integration test suite [tests/test_streaming_pipeline.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/tests/test_streaming_pipeline.py).
-  - `tech-writer-agent`: Write technical operations guide [docs/streaming_ingestion_guide.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/streaming_ingestion_guide.md).
+- **Active Milestone**: Transitioning from Step 5 (Bronze Layer Construction) to Step 6 (Silver Layer Construction).
+- **Current Tasks**:
+  - Perform automated commit for Step 5 completion (`feat(step-05): complete bronze layer construction`).
+  - Invoke `planning-agent` (`pro` / high reasoning) to decompose Step 6 into atomic tasks in [docs/context/current-step.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/context/current-step.md).
+  - Present Step 5 summary and Step 6 execution plan to the user for approval.
+
+## Recent Accomplishments (Step 5 Completed)
+- Authored [ADR-0008](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0008-bronze-layer-storage-architecture.md) and updated [docs/adr/README.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/README.md).
+- Created PostgreSQL DDL in [infrastructure/postgres/init.sql](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/infrastructure/postgres/init.sql) for `lakehouse_metadata` (`bronze_partition_catalog` and `bronze_ingestion_audit`).
+- Implemented core storage components:
+  * [processing/bronze/config.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/config.py) (`BronzeStorageConfig`).
+  * [processing/bronze/schema.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/schema.py) (10 technical metadata fields, envelope schema builder).
+  * [processing/bronze/enrichment.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/enrichment.py) (`BronzeMetadataEnricher`).
+  * [processing/bronze/writer.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/writer.py) (`BronzeTableWriter`).
+  * [processing/bronze/compaction.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/compaction.py) (`BronzeCompactor`).
+  * [processing/bronze/catalog.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/catalog.py) (`BronzeCatalogManager`).
+  * [processing/bronze/retention.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/retention.py) (`BronzeRetentionManager`).
+  * [processing/bronze/metrics.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/metrics.py) (`BronzeMetricsRegistry`).
+  * [processing/bronze/reader.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/processing/bronze/reader.py) (`BronzeDatasetReader`).
+- Implemented CLI runners:
+  * [scripts/run_bronze_ingestion.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/scripts/run_bronze_ingestion.py) (`BronzeIngestionRunner`).
+  * [scripts/run_bronze_compaction.py](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/scripts/run_bronze_compaction.py) (`BronzeCompactionRunner`).
+- Authored operations guide in [docs/bronze_layer_guide.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/bronze_layer_guide.md).
+- Authored Portuguese educational session journal in [docs/learning/step-05-bronze-layer-construction/2026-11-02-session-11-bronze-layer-and-columnar-storage.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-05-bronze-layer-construction/2026-11-02-session-11-bronze-layer-and-columnar-storage.md) and updated [docs/learning/README.md](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/README.md).
+- Comprehensive test coverage: **111 passed, 9 skipped across 9 Bronze test suites with 0 Ruff errors; 317 passed across full project test suite**.
+
+## Next Actions
+- Execute automated commit `feat(step-05): complete bronze layer construction`.
+- Invoke `planning-agent` to plan Step 6 (Silver Layer Construction).
+- Request user approval on Step 6 detailed task list.

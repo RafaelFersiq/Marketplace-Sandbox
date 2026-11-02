@@ -13,6 +13,7 @@ Este diretório contém os Registros de Decisões de Arquitetura (ADRs) para o M
 | [ADR-0005](file:///home/rafael-siqueira/Estudos/Projetos/Marketplace-Sandbox/docs/adr/0005-code-quality-linting-and-cicd-pipeline.md) | Padrões de Qualidade de Código, Linting e Pipeline de CI/CD | Accepted | 2026-07-26 |
 | [ADR-0006](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0006-adoption-of-argon-4-for-high-reasoning-subagents.md) | Adoção do Modelo Argon 4 para Subagentes de Alto Raciocínio (High-Reasoning Tier) | Accepted | 2026-10-24 |
 | [ADR-0007](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0007-streaming-ingestion-pipeline-architecture.md) | Streaming Ingestion Pipeline Architecture | Accepted | 2026-10-24 |
+| [ADR-0008](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/adr/0008-bronze-layer-storage-architecture.md) | Bronze Layer Storage Architecture, Columnar Partitioning, and Metadata Catalog | Accepted | 2026-11-02 |
 
 ## Processo para Criação de Novos ADRs
 

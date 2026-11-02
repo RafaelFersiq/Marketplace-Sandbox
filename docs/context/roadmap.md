@@ -76,124 +76,123 @@ Build the real-time ingestion layer.
 By the end of this step, events must be continuously consumed and reliably persisted locally.
 
 ## Step 5 — Bronze Layer Construction
-Implement the raw data layer (**Data Lakes / medallion architecture**).
-- Persist events in columnar storage solutions.
-- Define time-based partitioning.
-- Ensure immutability of ingested data.
-- Organize data in a navigable structure optimized for distributed reading.
-- Implement versioning and retention policies.
-By the end of this step, the platform must have reliable and scalable raw storage.
+Implement the canonical raw data layer (**Data Lakes / medallion architecture**).
+- Promote raw streaming micro-batches from the landing zone into canonical columnar storage (**Apache Parquet**).
+- Enrich records with non-destructive technical audit metadata (ingestion timestamps, Kafka offsets/partitions, Schema Registry IDs/versions, and deterministic payload hashes).
+- Define hierarchical time-based partitioning (`topic / year / month / day`) optimized for distributed reading and partition pruning.
+- Ensure append-only immutability of ingested data.
+- Implement small-file compaction routines to coalesce fragmented streaming micro-batch files into optimal target sizes.
+- Register committed partitions and ingestion watermarks in a relational metadata catalog (`lakehouse_metadata` in PostgreSQL) and enforce landing retention/TTL policies.
+By the end of this step, the platform must have reliable, cataloged, and scalable raw storage.
 
 ## Step 6 — Silver Layer Construction
-Implement refined processing (**Data Lakes / medallion architecture**).
-- Execute:
-  - cleaning
-  - deduplication
-  - standardization
-  - enrichment
-  - reconciliation
-- Apply business rules.
-- Resolve inconsistencies.
-- Handle invalid records by sending them to a quarantine area.
+Implement refined lakehouse processing and relational warehouse synchronization (**Data Lakes / medallion architecture**).
+- Seed and maintain simulated relational OLTP reference data in the PostgreSQL `transactional` schema (e.g., master records for customers with PII, sellers, product catalog, and categories) to support cross-source enrichment and reconciliation.
+- Execute in **PySpark**:
+  - schema normalization, cleaning, and type standardization
+  - cross-batch deduplication and state resolution
+  - enrichment by joining streaming events with OLTP reference snapshots
+  - reconciliation between streaming telemetry and transactional state
+- Apply domain business rules and resolve structural or semantic inconsistencies.
+- Route invalid or unrecoverable records to a Silver quarantine area.
+- **Governance:** Apply PII anonymization/masking rules (e.g., hashing/redacting tax IDs, emails, IP addresses, and street details), privacy policies (GDPR/LGPD compliance), and sensitive data lifecycle management.
+- Implement a **Silver-to-Warehouse Analytical Loader** (simulating **AWS Redshift `COPY`** locally by loading refined Silver Parquet datasets from MinIO into the PostgreSQL `silver` schema) to bridge the Data Lakehouse and the relational Data Warehouse.
 - Document all applied transformations.
-- **Governance:** Apply anonymization rules, privacy policies, and manage the lifecycle of sensitive data (PII).
-By the end of this step, data must be reliable for analytical consumption.
+By the end of this step, refined data must be persisted in the Silver Lakehouse layer and synchronized into the analytical database for downstream consumption.
 
 ## Step 7 — dbt Setup and Initial Layers (Staging and Intermediate)
 Introduce dbt Core as the analytical transformation engine and orchestrate the first preparation steps.
-- Configure the dbt project pointing initially to the local PostgreSQL database (already prepared and parameterized for AWS Redshift).
-- Structure the `staging` layer using dbt and SQL to perform basic cleaning, field renaming, and initial typing of data coming from the Silver layer.
-- Structure the `intermediate` layer for pre-aggregations, key handling, and complex business joins.
-- Configure source tests and document primary data sources.
-By the end of this step, the dbt project must be structured and connected to the local analytical database.
+- Configure the dbt project pointing initially to the local PostgreSQL database (consuming the synchronized `silver` and `transactional` source schemas, fully parameterized for **AWS Redshift**).
+- Structure the `staging` layer using dbt and SQL to perform basic cleaning, field renaming, and initial typing of data coming from the Silver layer and transactional sources.
+- Structure the `intermediate` layer for pre-aggregations, key handling, entity stitching, and complex business joins.
+- Configure source freshness, schema tests, and documentation for primary data sources.
+By the end of this step, the dbt project must be structured, tested, and connected to the local analytical database.
 
 ## Step 8 — Dimensional Modeling (Gold Layer) and Data Lineage via dbt
 Build the analytical presentation layer (Gold) by modeling the final tables that will be made available in AWS Redshift (simulated locally in this step).
-- Create models for the `marts` layer containing Fact tables (e.g., fct_orders, fct_navigation) and Dimension tables (e.g., dim_customers, dim_products, dim_sellers, dim_time) structured in a multidimensional model (**Star Schema / Snowflake Schema**).
-- Use dbt to materialize the fact and dimension tables directly in the analytical Redshift/PostgreSQL database.
+- Create models for the `marts` layer containing Fact tables (e.g., `fct_orders`, `fct_navigation`) and Dimension tables (e.g., `dim_customers`, `dim_products`, `dim_sellers`, `dim_time`) structured in a multidimensional model (**Star Schema / Snowflake Schema**).
+- Use dbt to materialize the fact and dimension tables directly in the analytical Redshift/PostgreSQL database (`marts` schema).
 - Build and document consolidated business metrics:
   - GMV (Gross Merchandise Value)
   - average ticket
   - conversion rate and cart abandonment
   - active sellers
   - catalog performance
-- Apply automatic dbt tests (**DataOps and Engineering Best Practices**): uniqueness, non-nullability, referential integrity, and custom singular tests.
+- Apply automatic dbt model contract tests (**DataOps and Engineering Best Practices**): uniqueness, non-nullability, referential integrity, accepted values, and custom singular business tests.
 - Track end-to-end data lineage using native **dbt Docs** documentation and export execution metadata via **OpenLineage** for governance.
 By the end of this step, the analytical dimensional layer will be built, validated, and documented with complete lineage tracking.
 
 ## Step 9 — Complete Orchestration
-Build automated workflows to coordinate pipeline tasks.
+Build automated workflows to coordinate end-to-end pipeline tasks across the Medallion layers.
 - Create DAGs responsible for (**Apache Airflow**):
-  - ingestion (including batch calls and local payload processing; the actual transition to **AWS Lambda** serverless functions will occur only in **Step 13**)
-  - transformation (orchestrating the execution of the dbt transformations created in steps 7 and 8)
-  - validation
-  - analytical load
-  - reconciliation
-  - monitoring
+  - ingestion and batch micro-triggers (including local payload processing; the transition to **AWS Lambda** serverless triggers will occur in **Step 13**)
+  - lakehouse promotion and maintenance (orchestrating Landing $\rightarrow$ Bronze ingestion, small-file compaction, and Bronze $\rightarrow$ Silver refinement)
+  - analytical warehouse loading (synchronizing Silver Parquet datasets into PostgreSQL/Redshift)
+  - analytical transformation (orchestrating `dbt deps`, `dbt seed`, `dbt run`, and `dbt test` across staging, intermediate, and marts)
+  - operational pipeline health checks and dead-letter / quarantine inspection
 - Implement:
-  - retries
-  - timeout
-  - dependencies
-  - sensors
-  - recovery policies
-- Define operational SLAs.
+  - task retries with exponential backoff
+  - execution timeouts
+  - cross-DAG and task dependencies
+  - storage and partition sensors
+  - failure callbacks and recovery policies
+- Define and monitor operational SLAs.
 By the end of this step, all local pipeline executions must occur in a coordinated and end-to-end orchestrated manner.
 
 ## Step 10 — Data Quality Layer (DataOps)
-Build a data quality framework.
-- Implement continuous checks for:
-  - completeness
-  - freshness
-  - distribution
-  - consistency
-  - integrity
-- Create automated alerts for anomalies.
-- Implement a quality history (data monitoring routines).
-- Log failures and anomalies.
-By the end of this step, the platform must have operational governance.
+Build a dedicated, cross-layer statistical data quality and anomaly detection framework integrated into the orchestrated pipelines.
+- Implement continuous programmatic checks across Bronze, Silver, and Gold layers for:
+  - completeness and schema drift
+  - data freshness and SLA adherence
+  - statistical distribution and volume anomalies
+  - cross-layer consistency (e.g., Bronze vs. Silver vs. Gold record/GMV reconciliation)
+  - referential and financial integrity
+- Create automated alerting hooks for detected data anomalies and quarantine spikes.
+- Implement a persistent data quality audit store (`lakehouse_metadata` quality history tables) to track quality scores and test outcomes over time.
+- Integrate quality gate operators directly into the Apache Airflow DAGs to halt downstream promotion upon critical contract violations.
+By the end of this step, the platform must have end-to-end operational data governance and automated quality gates.
 
 ## Step 11 — Observability and Monitoring
-Instrument all services.
-- Collect metrics (**using Prometheus**):
-  - throughput
-  - latency
-  - lag
-  - failures
-  - resource utilization (infrastructure)
-  - processing time
-- Build operational dashboards (**using Grafana**).
-- Create threshold-based alerts.
-- Ensure end-to-end traceability.
-By the end of this step, all operations must be observable.
+Consolidate telemetry across all infrastructure and data pipeline services.
+- Expose and collect metrics (**using Prometheus**, service exporters, and **Prometheus Pushgateway** for ephemeral batch/micro-batch jobs):
+  - producer and streaming throughput
+  - end-to-end ingestion and batch processing latency
+  - consumer lag and micro-batch durations
+  - DLQ, quarantine, and task failure rates
+  - infrastructure and container resource utilization (Kafka, PostgreSQL, Spark, MinIO, Airflow)
+  - Bronze/Silver compaction and dbt execution times
+- Build and provision declarative operational dashboards-as-code (**using Grafana** JSON provisioning).
+- Configure threshold-based alerting rules in Prometheus/Grafana.
+- Ensure end-to-end operational traceability across logs and metrics.
+By the end of this step, all platform operations and data SLAs must be observable in real time.
 
 ## Step 12 — Infrastructure as Code
-Code all infrastructure.
-- Provision resources declaratively (**using Terraform**).
-- Automate the creation of:
-  - storage
-  - computing
-  - network
-  - messaging
-  - observability
-- Version control the infrastructure.
-- Allow complete recreation of the environment.
-By the end of this step, the environment must be fully reproducible.
+Code the target cloud infrastructure declaratively.
+- Provision cloud resources using modular **Terraform**:
+  - storage (**Amazon S3** buckets for Landing, Bronze, Silver, DLQ, and Artifacts)
+  - computing and lakehouse processing (**AWS Lambda** and **Databricks** workspace/cluster resources)
+  - analytical data warehouse (**Amazon Redshift**)
+  - network and security (VPC, public/private subnets, security groups, least-privilege IAM roles)
+  - messaging and orchestration (**Amazon MSK** / Kafka and **Amazon MWAA** / ECS)
+  - observability and monitoring resources
+- Version control the infrastructure with modular state management and environment parameterization (`dev`, `prod`).
+- Validate infrastructure definitions via static analysis (`terraform fmt`, `terraform validate`, security/compliance checks) to guarantee complete reproducibility.
+By the end of this step, the cloud infrastructure specification must be fully codified, modularized, and reproducible.
 
 ## Step 13 — Cloud Deployment (AWS Ecosystem) and CI/CD Pipeline
-Migrate local platform execution to the real cloud environment on AWS and Databricks.
-- Perform the actual transition of components simulated locally to their cloud counterparts:
-  - Replace local MinIO with real buckets on **Amazon S3**.
-  - Migrate local PySpark processing to managed **Databricks** clusters.
-  - Publish actual serverless functions on **AWS Lambda**.
-  - Configure the actual analytical warehouse on **Amazon Redshift**.
-  - Execute Apache Airflow orchestration in the cloud (e.g., **Amazon MWAA** or AWS ECS).
-- Create an automated CI/CD pipeline (via GitHub Actions, GitLab CI or related tools) to:
-  - Validate (`lint`/`validate`), plan (`terraform plan`), and automatically deploy (`terraform apply`) infrastructure as code via Terraform on AWS.
-  - Automatically deploy and synchronize DAGs, scripts, plugins, and dependencies for Apache Airflow and dbt.
-- Configure a secure network (VPC, public/private subnets, security groups, and IAM roles based on the principle of least privilege).
-- Execute end-to-end integration tests in the cloud.
-- Validate scale behavior and performance estimates.
-By the end of this step, the platform must operate in the real AWS environment, fully automated via CI/CD.
+Transition the platform to cloud execution parity on AWS and Databricks with automated CI/CD governance.
+- Configure cloud runtime adapters and deployment targets for components simulated locally:
+  - Replace local MinIO endpoints with **Amazon S3** buckets.
+  - Package PySpark streaming and Medallion jobs for managed **Databricks** clusters.
+  - Package serverless ingestion/trigger handlers for **AWS Lambda**.
+  - Configure dbt profiles and warehouse loaders (`COPY` command) for **Amazon Redshift**.
+  - Synchronize Apache Airflow DAGs, plugins, and dependencies for cloud execution (**Amazon MWAA** or AWS ECS).
+- Create automated CI/CD pipelines (via **GitHub Actions**) to:
+  - Validate (`lint`/`validate`), plan (`terraform plan`), and govern infrastructure deployments (`terraform apply` supporting automated dry-run/mock verification by default and on-demand live cloud provisioning with automated teardown for cost control).
+  - Package, test, and deploy DAGs, PySpark wheels, Lambda bundles, and dbt models.
+- Execute end-to-end integration and cloud readiness validation tests.
+- Document scale behavior, performance benchmarks, and cloud FinOps cost estimates.
+By the end of this step, the platform must be cloud-ready and governed end-to-end via automated CI/CD pipelines.
 
 ## Step 14 — Technical Documentation and Portfolio
 Produce comprehensive technical documentation.

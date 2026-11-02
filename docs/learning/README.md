@@ -31,8 +31,10 @@ docs/learning/
 ├── step-03-building-event-producers/
 │   ├── 2026-07-29-session-08-base-producer-framework-and-synthetic-generation.md
 │   └── 2026-07-30-session-09-domain-producers-chaos-engine-and-streaming-simulation.md
-└── step-04-streaming-ingestion-pipeline/
-    └── 2026-10-24-session-10-pyspark-streaming-ingestion-and-dlq.md
+├── step-04-streaming-ingestion-pipeline/
+│   └── 2026-10-24-session-10-pyspark-streaming-ingestion-and-dlq.md
+└── step-05-bronze-layer-construction/
+    └── 2026-11-02-session-11-bronze-layer-and-columnar-storage.md
 ```
 
 ---
@@ -56,6 +58,9 @@ docs/learning/
 
 ### Step 4 — Pipeline de Ingestão em Streaming
 * [Sessão 10: Pipeline de Ingestão em Streaming com PySpark, Wire Format Confluent, Watermarking e Dead Letter Queue](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-04-streaming-ingestion-pipeline/2026-10-24-session-10-pyspark-streaming-ingestion-and-dlq.md) *(24/10/2026)*
+
+### Step 5 — Construção da Camada Bronze
+* [Sessão 11: Camada Bronze Medalhão, Armazenamento Colunar Parquet, Envelope de Metadados e Catálogo de Partições](file:///home/rafael-siqueira/estudos/projetos/Marketplace-Sandbox/docs/learning/step-05-bronze-layer-construction/2026-11-02-session-11-bronze-layer-and-columnar-storage.md) *(02/11/2026)*
 
 ---
 
